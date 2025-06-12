@@ -11,7 +11,6 @@ const InteractiveModePage: React.FC = () => {
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [score, setScore] = useState(0);
-    const [userAnswers, setUserAnswers] = useState<string[]>(selectedCategory ? Array(selectedCategory.questions.length).fill('') : []);
     const [showScoreboard, setShowScoreboard] = useState(false);
 
     React.useEffect(() => {
@@ -19,7 +18,6 @@ const InteractiveModePage: React.FC = () => {
         if (selectedCategory) {
             setCurrentQuestionIndex(0);
             setScore(0);
-            setUserAnswers(Array(selectedCategory.questions.length).fill(''));
             setShowScoreboard(false);
         } else {
             // Handle category not found, e.g., redirect or show error
@@ -29,15 +27,10 @@ const InteractiveModePage: React.FC = () => {
     }, [selectedCategory, navigate]);
 
 
-    const handleAnswerSubmit = (answer: string | number) => {
+    const handleAnswerSubmit = (isCorrect: boolean) => {
         if (!selectedCategory) return;
 
-        const currentQuestion = selectedCategory.questions[currentQuestionIndex];
-        const newAnswers = [...userAnswers];
-        newAnswers[currentQuestionIndex] = String(answer);
-        setUserAnswers(newAnswers);
-
-        if (String(currentQuestion.answer).toLowerCase() === String(answer).toLowerCase()) {
+        if (isCorrect) {
             setScore(score + 1);
         }
 
@@ -52,7 +45,6 @@ const InteractiveModePage: React.FC = () => {
         if (selectedCategory) {
             setCurrentQuestionIndex(0);
             setScore(0);
-            setUserAnswers(Array(selectedCategory.questions.length).fill(''));
             setShowScoreboard(false);
         }
     };
@@ -74,8 +66,6 @@ const InteractiveModePage: React.FC = () => {
                 <Scoreboard
                     score={score}
                     totalQuestions={selectedCategory.questions.length}
-                    questions={selectedCategory.questions}
-                    userAnswers={userAnswers}
                 />
                 <button onClick={restartCategory} className="button">Spróbuj ponownie tę kategorię</button>
                 <Link to="/practice" className="button">Wybierz inną kategorię lub tryb</Link>
