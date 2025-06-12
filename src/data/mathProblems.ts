@@ -1,15 +1,15 @@
 export type SchoolLevel =
-    | 'podstawowa_4_6' // Primary school grades 4-6
-    | 'podstawowa_7_8' // Primary school grades 7-8
-    | 'liceum_podst'   // High school, basic level
-    | 'liceum_rozsz'   // High school, extended level
-    | 'studia_tech_1rok'; // Technical university, 1st year
+    | 'podstawowa_4_6' 
+    | 'podstawowa_7_8' 
+    | 'liceum_podst'   
+    | 'liceum_rozsz'   
+    | 'studia_tech_1rok'; 
 
 export type Difficulty =
-    | 'latwe'          // Easy
-    | 'srednie'        // Medium
-    | 'trudne'         // Hard
-    | 'bardzo_trudne'; // Very hard
+    | 'latwe'          
+    | 'srednie'        
+    | 'trudne'         
+    | 'bardzo_trudne'; 
 
 export interface Question {
     id: string;
@@ -17,7 +17,7 @@ export interface Question {
     answer: string | number;
     schoolLevel: SchoolLevel;
     difficulty: Difficulty;
-    // Można tu dodać więcej pól, np. hints, solutionSteps, etc.
+    
 }
 
 export interface Category {
