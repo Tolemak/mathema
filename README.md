@@ -1,59 +1,65 @@
 # Mathema
 
-## Overview
-Mathema is an interactive web application designed to help users practice and improve their mathematics skills. The app presents users with various math questions from different categories and allows them to test their knowledge in an interactive mode or browse through sets of problems.
+## Opis Projektu
+Mathema to interaktywna aplikacja internetowa stworzona, aby pomóc użytkownikom ćwiczyć i doskonalić umiejętności matematyczne. Aplikacja prezentuje użytkownikom różnorodne zadania matematyczne z różnych kategorii i pozwala im sprawdzać swoją wiedzę w trybie interaktywnym lub przeglądać zestawy zadań. Użytkownicy mogą również śledzić swoje postępy i przeglądać wyniki w globalnej tabeli liderów.
 
-## Technologies Used
-- **React**: A JavaScript library for building user interfaces.
-- **Vite**: A fast build tool and development server for modern web projects.
-- **TypeScript**: A superset of JavaScript that adds static types, enhancing code quality and maintainability.
-- **CSS**: For styling the application.
+## Użyte Technologie
+- **React**: Biblioteka JavaScript do budowania interfejsów użytkownika.
+- **Vite**: Szybkie narzędzie do budowy i serwer deweloperski dla nowoczesnych projektów webowych.
+- **TypeScript**: Nadzbiór JavaScriptu dodający statyczne typowanie, poprawiający jakość i łatwość utrzymania kodu.
+- **React Router**: Do deklaratywnego routingu w aplikacji React.
+- **React Icons**: Do dołączania popularnych ikon do projektu.
+- **CSS**: Do stylizacji aplikacji, z naciskiem na globalne style i klasy wielokrotnego użytku.
 
-## Project Structure
-```
-mathema
-├── src
-│   ├── App.tsx                # Main application component, sets up routing
-│   ├── main.tsx               # Entry point of the application
-│   ├── components
-│   │   ├── Question.tsx       # Component for displaying math questions
-│   │   └── Scoreboard.tsx     # Component for displaying user scores
-│   ├── pages
-│   │   ├── WelcomePage.tsx   # Welcome page of the application (displays features, example tasks)
-│   │   └── PracticeAreaPage.tsx # Page for interactive practice and browsing questions
-│   └── styles
-│       └── global.css         # Global styles for the application
-├── index.html                 # Main HTML file
-├── package.json               # NPM configuration file
-├── tsconfig.json              # TypeScript configuration file
-├── vite.config.ts             # Vite configuration file
-└── README.md                  # Project documentation
-```
-
-## Setup Instructions
-1. Clone the repository:
+## Instrukcja Konfiguracji
+1. Sklonuj repozytorium:
+   ```bash
+   git clone https://github.com/twojanazwauzytkownika/math-learning-app.git
    ```
-   git clone https://github.com/yourusername/math-learning-app.git
-   ```
-2. Navigate to the project directory:
-   ```
+2. Przejdź do katalogu projektu:
+   ```bash
    cd mathema
    ```
-3. Install the dependencies:
-   ```
+3. Zainstaluj zależności:
+   ```bash
    npm install
    ```
-4. Start the development server:
-   ```
+4. Uruchom serwer deweloperski:
+   ```bash
    npm run dev
    ```
-5. Open your browser and go to `http://localhost:5173` to view the application. (Note: Vite's default port is often 5173, adjust if different)
+5. Otwórz przeglądarkę i przejdź pod adres `http://localhost:5173` (lub port przypisany przez Vite), aby zobaczyć aplikację.
 
-## Usage
-- The application opens on the Welcome Page, showcasing features and example tasks.
-- Click "Rozpocznij Naukę" to navigate to the Practice Area.
-- In the Practice Area, select a category and choose between 'Interactive' mode to solve problems or 'Browse tasks' mode to review questions and answers.
-- Your score and performance metrics will be displayed on the scoreboard in interactive mode.
+## Jak Korzystać
+- Aplikacja uruchamia się na **Stronie Powitalnej**, prezentując funkcje takie jak Tryb Interaktywny, Tryb Przeglądania i Śledzenie Postępów, wraz z przykładowymi zadaniami.
+- Kliknij **"Rozpocznij Naukę"** na karcie funkcji (np. Tryb Interaktywny) lub głównym przycisku akcji, aby przejść do **Obszaru Ćwiczeń**.
+- W **Obszarze Ćwiczeń** wybierz kategorię matematyczną (np. Algebra, Geometria).
+- Następnie wybierz tryb:
+    - **'Tryb Interaktywny'**: Rozwiązuj zadania jedno po drugim i otrzymuj natychmiastową informację zwrotną. Twój wynik, czas i inne metryki są śledzone.
+    - **'Przeglądaj Zadania'**: Przeglądaj pytania i odpowiedzi dla wybranej kategorii bez presji czasu.
+- Wracaj do poprzednich sekcji lub strony głównej, używając linków **"Powrót..."**.
+- Uzyskaj dostęp do **Globalnej Tablicy Liderów** ze strony Postępów lub bezpośrednio, jeśli dostępny jest link, aby zobaczyć najlepsze wyniki. Wyniki gości są wyróżnione.
+- **Strona Postępów** obecnie zawiera link do tablicy liderów i jest planowana do przyszłych ulepszeń.
 
-## Contributing
-Contributions are welcome! Please feel free to submit a pull request or open an issue for any suggestions or improvements.
+## Kolejne Kroki: Rozwój Backendu
+Następna główna faza rozwoju Mathema obejmuje stworzenie systemu backendowego w celu wsparcia bardziej zaawansowanych funkcji i trwałości danych.
+
+### Główne Cele:
+1.  **Uwierzytelnianie Użytkowników:** Implementacja systemu rejestracji i logowania użytkowników.
+2.  **Trwałe Dane Użytkownika:** Przechowywanie postępów użytkownika, wyników i preferencji w bazie danych.
+3.  **Współdzielona Tablica Liderów:** Przeniesienie danych tablicy liderów do centralnej bazy danych, umożliwiając stworzenie prawdziwie globalnego i trwałego systemu rankingowego.
+4.  **Rozwój API:** Stworzenie API RESTful lub GraphQL do obsługi komunikacji między frontendem a backendem.
+5.  **Zgłaszanie Zadań przez Użytkowników:** Umożliwienie zalogowanym użytkownikom zgłaszania własnych propozycji zadań do dodania do aplikacji (po weryfikacji).
+
+### Planowany Stos Technologiczny:
+-   **Framework Backendowy:** (Do ustalenia - np. Node.js z Express, Python z Django/Flask lub inna odpowiednia technologia)
+-   **Baza Danych:** **PostgreSQL**, hostowana na współdzielonej platformie, takiej jak [mikr.us](https://mikr.us) lub podobnej usłudze. Umożliwi to solidne przechowywanie danych i możliwości zapytań.
+-   **Uwierzytelnianie:** (Do ustalenia - np. JWT, OAuth)
+
+### Wpływ na Frontend:
+-   Integracja z nowym API do pobierania danych, przesyłania wyników i zarządzania sesjami użytkowników.
+-   Aktualizacje komponentów UI w celu odzwierciedlenia stanów uwierzytelnionych użytkowników i wyświetlania trwałych danych.
+-   Ulepszona obsługa błędów i stany ładowania dla interakcji z API.
+
+## Wkład w Projekt
+Zachęcamy do wkładu! Prosimy o przesyłanie pull requestów lub otwieranie zgłoszeń (issues) z wszelkimi sugestiami, poprawkami błędów lub ulepszeniami. Upewnij się, że nowy kod jest zgodny z istniejącą strukturą projektu i stylem kodowania.
