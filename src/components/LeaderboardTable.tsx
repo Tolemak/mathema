@@ -14,7 +14,7 @@ interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
   title?: string;
   highlightEntryId?: string; 
-  highlightPlayerName?: string; // New prop
+  highlightPlayerName?: string;
 }
 
 const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries, title = "Tablica Wyników", highlightEntryId, highlightPlayerName }) => {

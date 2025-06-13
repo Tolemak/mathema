@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { categories, Category, SchoolLevel } from '../data/mathProblems';
-import { FaArrowCircleLeft } from 'react-icons/fa'; // Import the icon
+import { FaArrowCircleLeft } from 'react-icons/fa';
 
 const schoolLevelDisplayOrder: SchoolLevel[] = [
     'podstawowa_4_6',

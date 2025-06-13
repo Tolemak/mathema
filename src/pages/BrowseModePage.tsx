@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { categories, Question as QuestionType, Category, SchoolLevel, Difficulty } from '../data/mathProblems';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { FaArrowCircleLeft } from 'react-icons/fa'; // Changed to FaArrowCircleLeft
+import { FaArrowCircleLeft } from 'react-icons/fa';
 
 const BrowseModePage: React.FC = () => {
     const { categoryId } = useParams<{ categoryId: string }>();
@@ -16,7 +16,6 @@ const BrowseModePage: React.FC = () => {
         if (!selectedCategory) {
             navigate('/practice');
         } else {
-            // Reset visible answers when category changes or on initial load
             setVisibleAnswers({});
         }
     }, [selectedCategory, navigate]);
@@ -64,7 +63,7 @@ const BrowseModePage: React.FC = () => {
             
             <div className="browse-mode-nav-back">
                 <Link to="/practice" className="nav-button-link secondary">
-                    <FaArrowCircleLeft className="nav-button-icon" /> {/* Changed to FaArrowCircleLeft */}
+                    <FaArrowCircleLeft className="nav-button-icon" />
                     Wybierz inną kategorię
                 </Link>
             </div>
