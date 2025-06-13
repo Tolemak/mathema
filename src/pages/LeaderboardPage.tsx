@@ -34,9 +34,14 @@ const loadAllLeaderboardDataFromCookie = (): LeaderboardEntry[] => {
 
 const LeaderboardPage: React.FC = () => {
     const [allScores, setAllScores] = useState<LeaderboardEntry[]>([]);
+    const [guestPlayerName, setGuestPlayerName] = useState<string | null>(null);
 
     useEffect(() => {
         setAllScores(loadAllLeaderboardDataFromCookie());
+        const currentGuestId = getCookie('guestId');
+        if (currentGuestId && currentGuestId.startsWith('guest_')) {
+            setGuestPlayerName(`Gość ${currentGuestId.substring(6,12)}`);
+        }
     }, []);
 
     return (
@@ -50,7 +55,7 @@ const LeaderboardPage: React.FC = () => {
                     Powrót do strony głównej
                 </Link>
             </div>
-            <LeaderboardTable entries={allScores} title="Top 100 Graczy" />
+            <LeaderboardTable entries={allScores} title="Top 100 Graczy" highlightPlayerName={guestPlayerName || undefined} />
         </div>
     );
 };
