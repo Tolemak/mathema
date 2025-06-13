@@ -6,6 +6,7 @@ import InteractiveModePage from './pages/InteractiveModePage';
 import BrowseModePage from './pages/BrowseModePage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProgressPage from './pages/ProgressPage';
+import Footer from './components/Footer'; // Import Footer component
 import './styles/global.css';
 
 const App: React.FC = () => {
@@ -22,9 +23,7 @@ const App: React.FC = () => {
             <Route path="/progress" element={<ProgressPage />} />
           </Routes>
         </main>
-        <footer className="main-footer" style={{ textAlign: 'center', marginTop: '50px', padding: '20px', borderTop: '1px solid #eee', color: '#777' }}>
-          <p>&copy; {new Date().getFullYear()} Mathema. Wszelkie prawa zastrzeżone.</p>
-          <p>Stworzone z pasją do matematyki i nowoczesnych technologii.</p>    </footer>
+        <Footer /> {/* Use Footer component here */}
       </div>
     </Router>
   );
