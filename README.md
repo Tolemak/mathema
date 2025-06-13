@@ -1,5 +1,16 @@
 # Mathema
 
+## Spis Treści
+1. [Opis Projektu](#opis-projektu)
+2. [Użyte Technologie](#użyte-technologie)
+3. [Instrukcja Konfiguracji](#instrukcja-konfiguracji)
+4. [Jak Korzystać](#jak-korzystać)
+5. [Kolejne Kroki: Rozwój Backendu](#kolejne-kroki-rozwój-backendu)
+    - [Główne Cele](#główne-cele)
+    - [Planowany Stos Technologiczny](#planowany-stos-technologiczny)
+    - [Wpływ na Frontend](#wpływ-na-frontend)
+6. [Wkład w Projekt](#wkład-w-projekt)
+
 ## Opis Projektu
 Mathema to interaktywna aplikacja internetowa stworzona, aby pomóc użytkownikom ćwiczyć i doskonalić umiejętności matematyczne. Aplikacja prezentuje użytkownikom różnorodne zadania matematyczne z różnych kategorii i pozwala im sprawdzać swoją wiedzę w trybie interaktywnym lub przeglądać zestawy zadań. Użytkownicy mogą również śledzić swoje postępy i przeglądać wyniki w globalnej tabeli liderów.
 
