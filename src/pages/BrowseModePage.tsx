@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { categories, Question as QuestionType, Category, SchoolLevel, Difficulty } from '../data/mathProblems';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import { FaArrowCircleLeft } from 'react-icons/fa'; // Changed to FaArrowCircleLeft
 
 const BrowseModePage: React.FC = () => {
     const { categoryId } = useParams<{ categoryId: string }>();
@@ -15,6 +16,7 @@ const BrowseModePage: React.FC = () => {
         if (!selectedCategory) {
             navigate('/practice');
         } else {
+            // Reset visible answers when category changes or on initial load
             setVisibleAnswers({});
         }
     }, [selectedCategory, navigate]);
@@ -22,13 +24,13 @@ const BrowseModePage: React.FC = () => {
     const schoolLevels: SchoolLevel[] = useMemo(() => {
         if (!selectedCategory) return [];
         const levels = new Set(selectedCategory.questions.map(q => q.schoolLevel));
-        return Array.from(levels).sort();
+        return Array.from(levels).sort(); 
     }, [selectedCategory]);
 
     const difficulties: Difficulty[] = useMemo(() => {
         if (!selectedCategory) return [];
         const diffs = new Set(selectedCategory.questions.map(q => q.difficulty));
-        return Array.from(diffs).sort();
+        return Array.from(diffs).sort(); 
     }, [selectedCategory]);
 
     const filteredQuestions = useMemo(() => {
@@ -49,27 +51,25 @@ const BrowseModePage: React.FC = () => {
 
     if (!selectedCategory) {
         return (
-            <div className="page-container"> 
-                <p style={{ textAlign: 'center' }}>Kategoria nie została znaleziona. Proszę wybrać kategorię z <Link to="/practice">listy</Link>.</p>
+            <div className="page-container browse-mode-page-error">
+                <p>Kategoria nie została znaleziona. Proszę wybrać kategorię z <Link to="/practice">listy</Link>.</p>
             </div>
         );
     }
 
     return (
-        <div className="page-container browse-mode-page"> 
-            <h1 style={{ textAlign: 'center' }}>Tryb Przeglądania</h1>
-            <h2 style={{ textAlign: 'center' }}>Kategoria: {selectedCategory.name}</h2>
+        <div className="page-container browse-mode-page">
+            <h1 className="browse-mode-title">Tryb Przeglądania</h1>
+            <h2 className="browse-mode-category-title">Kategoria: {selectedCategory.name}</h2>
             
-            <div style={{ textAlign: 'center', marginBottom: '20px' }}> 
+            <div className="browse-mode-nav-back">
                 <Link to="/practice" className="nav-button-link secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-left-circle-fill" viewBox="0 0 16 16" style={{ marginRight: '8px'}}>
-                        <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
-                    </svg>
+                    <FaArrowCircleLeft className="nav-button-icon" /> {/* Changed to FaArrowCircleLeft */}
                     Wybierz inną kategorię
                 </Link>
             </div>
 
-            <div className="filters-container"> 
+            <div className="filters-container">
                 <div className="filter-group">
                     <label htmlFor="schoolLevelFilter">Poziom:</label>
                     <select
@@ -105,30 +105,30 @@ const BrowseModePage: React.FC = () => {
                             setSelectedLevel('all');
                             setSelectedDifficulty('all');
                         }}
-                        className="button button-secondary small" 
+                        className="button button-secondary small clear-filters-button"
                     >
                         Wyczyść filtry
                     </button>
                 )}
             </div>
 
-            <div className="questions-list" style={{ marginTop: '30px' }}>
+            <div className="questions-list">
                 {filteredQuestions.length > 0 ? (
                     filteredQuestions.map((question, index) => (
-                        <div key={question.id} className="question-item-browse" style={{ marginBottom: '20px', padding: '15px', border: '1px solid #eee', borderRadius: '8px', backgroundColor: '#fdfdfd'}}>
+                        <div key={question.id} className="question-item-browse">
                             <h3>Zadanie {index + 1}:</h3>
                             <p>{question.text}</p>
-                            <button onClick={() => toggleAnswerVisibility(question.id)} className="button small" style={{ marginTop: '10px', marginBottom: '10px' }}>
+                            <button onClick={() => toggleAnswerVisibility(question.id)} className="button small toggle-answer-button">
                                 {visibleAnswers[question.id] ? 'Ukryj' : 'Pokaż'} odpowiedź
                             </button>
                             {visibleAnswers[question.id] && (
-                                <p style={{ padding: '10px', backgroundColor: '#e9f5ff', borderRadius: '4px' }}><strong>Odpowiedź:</strong> {question.answer}</p>
+                                <p className="answer-text"><strong>Odpowiedź:</strong> {question.answer}</p>
                             )}
-                            <p style={{ marginTop: '10px' }}><small>Poziom: {question.schoolLevel.replace(/_/g, ' ')}, Trudność: {question.difficulty}</small></p>
+                            <p className="question-meta"><small>Poziom: {question.schoolLevel.replace(/_/g, ' ')}, Trudność: {question.difficulty}</small></p>
                         </div>
                     ))
                 ) : (
-                    <p style={{ textAlign: 'center' }}>Brak zadań spełniających wybrane kryteria filtrowania.</p>
+                    <p className="no-questions-message">Brak zadań spełniających wybrane kryteria filtrowania.</p>
                 )}
             </div>
         </div>

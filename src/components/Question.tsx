@@ -1,39 +1,37 @@
 import React, { useState } from 'react';
+import { Question as QuestionType } from '../data/mathProblems';
 
 interface QuestionProps {
-  question: string;
-  answer: string | number; 
-  onAnswer: (isCorrect: boolean) => void;
+  question: QuestionType;
+  onSubmit: (isCorrect: boolean) => void;
 }
 
-const Question: React.FC<QuestionProps> = ({ question, answer, onAnswer }) => {
-    const [userAnswer, setUserAnswer] = useState<string>(''); 
+const Question: React.FC<QuestionProps> = ({ question, onSubmit }) => {
+    const [userAnswer, setUserAnswer] = useState<string>('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmitForm = (e: React.FormEvent) => {
         e.preventDefault();
         let isCorrect = false;
 
-        if (typeof answer === 'number') {
-            
+        if (typeof question.answer === 'number') {
             const userAnswerAsNumber = parseFloat(userAnswer);
             if (!isNaN(userAnswerAsNumber)) {
-                isCorrect = userAnswerAsNumber === answer;
+                isCorrect = userAnswerAsNumber === question.answer;
             }
         } else {
-            
-            isCorrect = userAnswer.trim().toLowerCase() === String(answer).trim().toLowerCase();
+            isCorrect = userAnswer.trim().toLowerCase() === String(question.answer).trim().toLowerCase();
         }
-        
-        onAnswer(isCorrect);
-        setUserAnswer(''); 
+
+        onSubmit(isCorrect);
+        setUserAnswer('');
     };
 
     return (
         <div className="question-container">
-            <h2>{question}</h2>
-            <form onSubmit={handleSubmit}>
+            <h2>{question.text}</h2>
+            <form onSubmit={handleSubmitForm}>
                 <input
-                    type="text" 
+                    type="text"
                     value={userAnswer}
                     onChange={(e) => setUserAnswer(e.target.value)}
                     placeholder="Twoja odpowiedź"

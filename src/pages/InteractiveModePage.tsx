@@ -4,32 +4,8 @@ import Question from '../components/Question';
 import Scoreboard from '../components/Scoreboard';
 import LeaderboardTable, { LeaderboardEntry } from '../components/LeaderboardTable';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-
-const setCookie = (name: string, value: string, days: number) => {
-    let expires = "";
-    if (days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        expires = "; expires=" + date.toUTCString();
-    }
-    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
-};
-
-const getCookie = (name: string): string | null => {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for(let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
-};
-
-const eraseCookie = (name: string) => {
-    document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-};
-
+import { setCookie, getCookie, eraseCookie } from '../utils/cookies';
+import { FaArrowCircleLeft, FaRedo, FaListOl } from 'react-icons/fa'; // Import icons
 
 const difficultyMultipliers: Record<Difficulty, number> = {
     'latwe': 1,
@@ -132,6 +108,7 @@ const InteractiveModePage: React.FC = () => {
     const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
     const [finalDisplayedScore, setFinalDisplayedScore] = useState<number>(0);
     const [lastGameEntry, setLastGameEntry] = useState<LeaderboardEntry | null>(null); 
+    const [guestPlayerName, setGuestPlayerName] = useState<string>('');
 
     const selectRandomQuestion = useCallback((questions: QuestionType[]) => {
         if (questions.length === 0) {
@@ -153,6 +130,7 @@ const InteractiveModePage: React.FC = () => {
         if (selectedCategory) {
             const initialQuestions = [...selectedCategory.questions];
             const guestName = getGuestId();
+            setGuestPlayerName(guestName); // Set guest player name
             const stableEntryId = `${guestName}-${selectedCategory.id}`;
 
             const allSavedEntries = loadLeaderboardData();
@@ -267,6 +245,16 @@ const InteractiveModePage: React.FC = () => {
         }
     };
 
+    // const handleEndSessionEarly = () => {
+    //     setShowScoreboard(true);
+    //     setFinalDisplayedScore(score); 
+    //     setLeaderboardEntries(loadLeaderboardData(selectedCategory?.name)); 
+    // };
+
+    const handleRestart = () => {
+        restartCategory();
+    };
+
     if (!selectedCategory) {
         return (
             <div className="page-container">
@@ -323,40 +311,67 @@ const InteractiveModePage: React.FC = () => {
     const currentMultiplier = currentQuestion ? (difficultyMultipliers[currentQuestion.difficulty] * schoolLevelMultipliers[currentQuestion.schoolLevel]).toFixed(1) : '1';
 
     return (
-        <div className="page-container">
-            <h1 style={{ textAlign: 'center' }}>Tryb Interaktywny</h1>
-            <h2 style={{ textAlign: 'center' }}>Kategoria: {selectedCategory.name}</h2>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '10px 0' }}>
-                <p>Zadanie {questionsAnswered + 1} (Pozostało: {availableQuestions.length})</p>
-                <p>Czas na zadanie: {currentTimePerQuestion.toFixed(1)}s</p>
-            </div>
-            <Question
-                question={currentQuestion.text}
-                answer={currentQuestion.answer}
-                onAnswer={handleAnswerSubmit}
-            />
-            <div style={{ textAlign: 'center', marginTop: '10px' }}>
-                <p>Twój wynik: {Math.round(score)}</p>
-                <p>Mnożnik punktów: {currentMultiplier}x (Poziom: {currentQuestion.schoolLevel}, Trudność: {currentQuestion.difficulty})</p>
-                <p>Bonus za czas (max {MAX_TIME_BONUS_SECONDS}s): zielony poniżej, czerwony powyżej</p>
-                 <div style={{
-                    width: '100%',
-                    backgroundColor: '#ddd',
-                    borderRadius: '5px',
-                    marginTop: '5px'
-                }}>
-                    <div style={{
-                        width: `${Math.min(100, (currentTimePerQuestion / MAX_TIME_BONUS_SECONDS) * 100)}%`,
-                        backgroundColor: currentTimePerQuestion <= MAX_TIME_BONUS_SECONDS ? 'green' : 'red',
-                        height: '10px',
-                        borderRadius: '5px',
-                        transition: 'width 0.1s ease-in-out'
-                    }}></div>
-                </div>
-            </div>
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                <Link to="/practice?mode=interactive" className="nav-button-link secondary">Zmień kategorię</Link>
-            </div>
+        <div className="page-container interactive-mode-page">
+            {selectedCategory ? (
+                <>
+                    <h1>Tryb Interaktywny: {selectedCategory.name}</h1>
+                    
+                    {showScoreboard ? (
+                        <div className="finish-message">
+                            <h2>Gratulacje! Ukończyłeś kategorię!</h2>
+                            <p>Twój ostateczny wynik: {Math.round(finalDisplayedScore)}</p>
+                            <p>Całkowity czas: {totalSessionTime.toFixed(1)} sekund</p>
+                            <p>Odpowiedziałeś na {questionsAnswered} pytań.</p>
+                            
+                            {leaderboardEntries.length > 0 && (
+                                <div className="leaderboard-section">
+                                    <h3>Ranking dla tej kategorii:</h3>
+                                    <LeaderboardTable 
+                                        entries={leaderboardEntries} 
+                                        highlightPlayerName={guestPlayerName} 
+                                    />
+                                </div>
+                            )}
+
+                            <div className="navigation-buttons">
+                                <button onClick={handleRestart} className="button">
+                                    <FaRedo className="nav-button-icon" /> Spróbuj ponownie
+                                </button>
+                                <Link to="/practice?mode=interactive" className="nav-button-link secondary">
+                                    <FaListOl className="nav-button-icon" /> Wybierz inną kategorię
+                                </Link>
+                                <Link to="/" className="nav-button-link secondary">
+                                    <FaArrowCircleLeft className="nav-button-icon" /> Strona główna
+                                </Link>
+                            </div>
+                        </div>
+                    ) : currentQuestion ? (
+                        <>
+                            <Scoreboard 
+                                score={Math.round(score)} 
+                                questionsAnswered={questionsAnswered} 
+                                totalQuestions={selectedCategory.questions.length} 
+                                timeLeft={currentTimePerQuestion} 
+                                lastGameScore={lastGameEntry ? Math.round(lastGameEntry.score) : undefined}
+                            />
+                            <Question 
+                                question={currentQuestion} 
+                                onSubmit={handleAnswerSubmit} 
+                                key={currentQuestion.id} 
+                            />
+                            <div className="interactive-mode-controls">
+                                <Link to="/practice?mode=interactive" className="button secondary small nav-button-link">
+                                    <FaListOl className="nav-button-icon" /> Wróć do wyboru kategorii
+                                </Link>
+                            </div>
+                        </>
+                    ) : (
+                        <p className="loading-message">Ładowanie pytania...</p>
+                    )}
+                </>
+            ) : (
+                <p className="loading-message">Ładowanie kategorii...</p>
+            )}
         </div>
     );
 };
