@@ -2,7 +2,7 @@ import React from 'react';
 
 interface ScoreboardProps {
   score: number;
-  questionsAnswered?: number; // Changed to optional
+  questionsAnswered?: number;
   totalQuestions: number;
   timeLeft?: number; 
   lastGameScore?: number; 

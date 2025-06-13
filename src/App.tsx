@@ -6,7 +6,7 @@ import InteractiveModePage from './pages/InteractiveModePage';
 import BrowseModePage from './pages/BrowseModePage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProgressPage from './pages/ProgressPage';
-import Footer from './components/Footer'; // Import Footer component
+import Footer from './components/Footer';
 import './styles/global.css';
 
 const App: React.FC = () => {
@@ -23,7 +23,7 @@ const App: React.FC = () => {
             <Route path="/progress" element={<ProgressPage />} />
           </Routes>
         </main>
-        <Footer /> {/* Use Footer component here */}
+        <Footer />
       </div>
     </Router>
   );
