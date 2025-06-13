@@ -28,7 +28,7 @@ Mathema to interaktywna aplikacja internetowa stworzona, aby pomóc użytkowniko
    ```bash
    npm run dev
    ```
-5. Otwórz przeglądarkę i przejdź pod adres `http://localhost:5173` (lub port przypisany przez Vite), aby zobaczyć aplikację.
+5. Otwórz przeglądarkę i przejdź pod adres `http://localhost:3000` (lub port przypisany przez Vite), aby zobaczyć aplikację.
 
 ## Jak Korzystać
 - Aplikacja uruchamia się na **Stronie Powitalnej**, prezentując funkcje takie jak Tryb Interaktywny, Tryb Przeglądania i Śledzenie Postępów, wraz z przykładowymi zadaniami.
