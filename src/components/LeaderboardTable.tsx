@@ -14,9 +14,10 @@ interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
   title?: string;
   highlightEntryId?: string; 
+  highlightPlayerName?: string; // New prop
 }
 
-const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries, title = "Tablica Wyników", highlightEntryId }) => {
+const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries, title = "Tablica Wyników", highlightEntryId, highlightPlayerName }) => {
   if (!entries || entries.length === 0) {
     return <p style={{ textAlign: 'center', margin: '20px 0' }}>Brak wyników do wyświetlenia.</p>;
   }
@@ -43,15 +44,18 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries, title = "T
           </tr>
         </thead>
         <tbody>
-          {sortedEntries.map((entry, index) => (
-            <tr key={entry.id} style={entry.id === highlightEntryId ? { backgroundColor: '#e6ffed' } : {}}>
-              <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{index + 1}</td>
-              <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{entry.playerName}</td>
-              <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{Math.round(entry.score)}</td>
-              <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{entry.categoryName}</td>
-              <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{new Date(entry.date).toLocaleDateString()}</td>
-            </tr>
-          ))}
+          {sortedEntries.map((entry, index) => {
+            const isHighlighted = highlightEntryId ? entry.id === highlightEntryId : (highlightPlayerName ? entry.playerName === highlightPlayerName : false);
+            return (
+              <tr key={entry.id} style={isHighlighted ? { backgroundColor: '#e6ffed' } : {}}>
+                <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{index + 1}</td>
+                <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{entry.playerName}</td>
+                <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{Math.round(entry.score)}</td>
+                <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{entry.categoryName}</td>
+                <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{new Date(entry.date).toLocaleDateString()}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
