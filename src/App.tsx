@@ -21,6 +21,13 @@ const App: React.FC = () => {
             <Route path="/practice/browse/:categoryId" element={<BrowseModePage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
             <Route path="/progress" element={<ProgressPage />} />
+            <Route path="*" element={
+              <div className="page-container" style={{textAlign: 'center', padding: '60px'}}>
+                <h1 style={{fontSize: '3em', color: '#e67e22'}}>404</h1>
+                <p>Nie znaleziono strony lub zasobu.</p>
+                <a href="/" className="nav-button-link primary">Powrót na stronę główną</a>
+              </div>
+            } />
           </Routes>
         </main>
         <Footer />
