@@ -1,0 +1,22 @@
+# Blokuj dostęp do katalogu .git i plików wrażliwych
+RedirectMatch 403 \.git
+RedirectMatch 403 \.env
+RedirectMatch 403 \.htaccess
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Zezwól na wszystkie pliki statyczne (np. po buildzie Vite/React)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Obsługa SPA (wszystko inne do index.html)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ /index.html [L]
+
+  # Strony błędów
+  ErrorDocument 403 /403.html
+</IfModule>
