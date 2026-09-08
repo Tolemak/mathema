@@ -2,33 +2,18 @@ import React, { useState, useEffect } from 'react';
 import LeaderboardTable, { LeaderboardEntry } from '../components/LeaderboardTable';
 import { Link } from 'react-router-dom';
 import { getCookie } from '../utils/cookies';
+import { fetchLeaderboard } from '../utils/leaderboardApi';
 import { FaArrowCircleLeft } from 'react-icons/fa';
-
-const loadAllLeaderboardDataFromCookie = (): LeaderboardEntry[] => {
-    const data = getCookie('leaderboard');
-    let allEntries: LeaderboardEntry[] = [];
-    if (data) {
-        try {
-            allEntries = JSON.parse(data);
-        } catch (error) {
-            console.error("Failed to parse leaderboard cookie data:", error);
-            allEntries = [];
-        }
-    }
-    return allEntries.sort((a, b) => {
-        if (b.score !== a.score) {
-            return b.score - a.score;
-        }
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-    }).slice(0, 100);
-};
 
 const LeaderboardPage: React.FC = () => {
     const [allScores, setAllScores] = useState<LeaderboardEntry[]>([]);
     const [guestPlayerName, setGuestPlayerName] = useState<string | null>(null);
+    const [loadError, setLoadError] = useState(false);
 
     useEffect(() => {
-        setAllScores(loadAllLeaderboardDataFromCookie());
+        fetchLeaderboard(undefined, 100)
+            .then(setAllScores)
+            .catch(() => setLoadError(true));
         const currentGuestId = getCookie('guestId');
         if (currentGuestId && currentGuestId.startsWith('guest_')) {
             setGuestPlayerName(`Gość ${currentGuestId.substring(6,12)}`);
@@ -44,7 +29,11 @@ const LeaderboardPage: React.FC = () => {
                     Powrót do strony głównej
                 </Link>
             </div>
-            <LeaderboardTable entries={allScores} title="Top 100 Graczy" highlightPlayerName={guestPlayerName || undefined} />
+            {loadError ? (
+                <p style={{ textAlign: 'center' }}>Nie udało się wczytać tablicy wyników. Spróbuj ponownie później.</p>
+            ) : (
+                <LeaderboardTable entries={allScores} title="Top 100 Graczy" highlightPlayerName={guestPlayerName || undefined} />
+            )}
         </div>
     );
 };

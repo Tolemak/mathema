@@ -5,6 +5,7 @@ import Scoreboard from '../components/Scoreboard';
 import LeaderboardTable, { LeaderboardEntry } from '../components/LeaderboardTable';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { setCookie, getCookie, eraseCookie } from '../utils/cookies';
+import { fetchLeaderboard, fetchMyEntry, submitLeaderboardEntry } from '../utils/leaderboardApi';
 import { FaArrowCircleLeft, FaRedo, FaListOl } from 'react-icons/fa'; // Import icons
 
 const difficultyMultipliers: Record<Difficulty, number> = {
@@ -37,57 +38,31 @@ const getGuestId = () => {
 };
 
 
-const saveLeaderboardData = (newEntry: LeaderboardEntry) => {
-    let allEntries: LeaderboardEntry[] = [];
-    const data = getCookie('leaderboard');
-    if (data) {
-        try {
-            allEntries = JSON.parse(data);
-        } catch (error) {
-            allEntries = [];
-        }
-    }
-
-    const existingEntryIndex = allEntries.findIndex(entry => entry.id === newEntry.id);
-
-    if (existingEntryIndex > -1) {
-        allEntries[existingEntryIndex] = newEntry;
-    } else {
-        allEntries.push(newEntry);
-    }
-
-    allEntries.sort((a, b) => {
-        if (b.score !== a.score) {
-            return b.score - a.score;
-        }
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-    });
-
-    const limitedEntries = allEntries.slice(0, 50);
-
+// Best-effort: submits the guest's score to the shared leaderboard API.
+// Gameplay never blocks on this — a failed submission just means this
+// entry won't show up on the shared board, the session itself is unaffected.
+const saveLeaderboardData = async (clientId: string, newEntry: LeaderboardEntry) => {
     try {
-        setCookie('leaderboard', JSON.stringify(limitedEntries), 365);
+        await submitLeaderboardEntry({
+            clientId,
+            playerName: newEntry.playerName,
+            categoryName: newEntry.categoryName,
+            score: newEntry.score,
+            difficulty: newEntry.difficulty,
+            schoolLevel: newEntry.schoolLevel,
+        });
     } catch (error) {
+        console.error('Failed to submit score to leaderboard:', error);
     }
 };
 
-const loadLeaderboardData = (categoryId?: string): LeaderboardEntry[] => {
-    const data = getCookie('leaderboard');
-    let globallySortedEntries: LeaderboardEntry[] = [];
-    if (data) {
-        try {
-            globallySortedEntries = JSON.parse(data);
-        } catch (error) {
-            globallySortedEntries = [];
-        }
+const loadLeaderboardData = async (categoryId?: string): Promise<LeaderboardEntry[]> => {
+    try {
+        return await fetchLeaderboard(categoryId, categoryId ? 10 : 100);
+    } catch (error) {
+        console.error('Failed to load leaderboard:', error);
+        return [];
     }
-
-    if (categoryId) {
-        const categoryEntries = globallySortedEntries.filter(entry => entry.categoryName === categoryId);
-        return categoryEntries.slice(0, 10);
-    }
-
-    return globallySortedEntries;
 };
 
 
@@ -131,26 +106,23 @@ const InteractiveModePage: React.FC = () => {
             const initialQuestions = [...selectedCategory.questions];
             const guestName = getGuestId();
             setGuestPlayerName(guestName); // Set guest player name
-            const stableEntryId = `${guestName}-${selectedCategory.id}`;
 
-            const allSavedEntries = loadLeaderboardData();
-            const userCategoryEntry = allSavedEntries.find(entry => entry.id === stableEntryId);
-
-            if (userCategoryEntry) {
-                setScore(userCategoryEntry.score);
-                setLastGameEntry(userCategoryEntry);
-            } else {
-                setScore(0);
-                setLastGameEntry(null);
-            }
-            
+            setScore(0);
+            setLastGameEntry(null);
             setQuestionsAnswered(0);
             setShowScoreboard(false);
             setFinalDisplayedScore(0);
             setTotalSessionTime(0);
             setCurrentTimePerQuestion(0);
-            setLeaderboardEntries(loadLeaderboardData(selectedCategory.name)); 
-            selectRandomQuestion(initialQuestions); 
+            selectRandomQuestion(initialQuestions);
+
+            loadLeaderboardData(selectedCategory.name).then(setLeaderboardEntries);
+            fetchMyEntry(guestName, selectedCategory.name).then((userCategoryEntry) => {
+                if (userCategoryEntry) {
+                    setScore(userCategoryEntry.score);
+                    setLastGameEntry(userCategoryEntry);
+                }
+            }).catch((error) => console.error('Failed to load your saved score:', error));
         } else {
             navigate('/practice');
         }
@@ -197,22 +169,21 @@ const InteractiveModePage: React.FC = () => {
             currentCumulativeScore += pointsForThisQuestion; 
             setScore(currentCumulativeScore); 
 
-            if (selectedCategory) { 
-                const guestName = getGuestId(); 
-                const stableEntryId = `${guestName}-${selectedCategory.id}`;
-
+            if (selectedCategory) {
+                const guestName = getGuestId();
                 const newEntry: LeaderboardEntry = {
-                    id: stableEntryId, 
+                    id: `${guestName}-${selectedCategory.name}`,
                     playerName: guestName.startsWith('guest_') ? `Gość ${guestName.substring(6,12)}` : guestName,
-                    score: Math.round(currentCumulativeScore), 
+                    score: Math.round(currentCumulativeScore),
                     categoryName: selectedCategory.name,
                     date: new Date().toISOString(),
-                    difficulty: currentQuestion.difficulty, 
-                    schoolLevel: currentQuestion.schoolLevel, 
+                    difficulty: currentQuestion.difficulty,
+                    schoolLevel: currentQuestion.schoolLevel,
                 };
-                saveLeaderboardData(newEntry);
-                setLeaderboardEntries(loadLeaderboardData(selectedCategory.name)); 
-                setLastGameEntry(newEntry); 
+                setLastGameEntry(newEntry);
+                saveLeaderboardData(guestName, newEntry).then(() =>
+                    loadLeaderboardData(selectedCategory.name).then(setLeaderboardEntries)
+                );
             }
         }
         
@@ -239,8 +210,8 @@ const InteractiveModePage: React.FC = () => {
             setFinalDisplayedScore(0); 
             setTotalSessionTime(0);
             setCurrentTimePerQuestion(0);
-            setLastGameEntry(null); 
-            setLeaderboardEntries(loadLeaderboardData(selectedCategory.name)); 
+            setLastGameEntry(null);
+            loadLeaderboardData(selectedCategory.name).then(setLeaderboardEntries);
             selectRandomQuestion(initialQuestions);
         }
     };

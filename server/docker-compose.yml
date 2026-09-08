@@ -1,0 +1,9 @@
+services:
+  mathema-api:
+    build:
+      context: .
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "40056:3000"
