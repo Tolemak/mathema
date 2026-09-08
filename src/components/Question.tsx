@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Question as QuestionType } from '../data/mathProblems';
+import { isStringAnswerCorrect } from '../utils/answerCheck';
 
 interface QuestionProps {
   question: QuestionType;
@@ -14,12 +15,14 @@ const Question: React.FC<QuestionProps> = ({ question, onSubmit }) => {
         let isCorrect = false;
 
         if (typeof question.answer === 'number') {
-            const userAnswerAsNumber = parseFloat(userAnswer);
+            // Accept Polish comma-decimals ("3,5") alongside periods — still
+            // an exact numeric match, just tolerant of the separator used.
+            const userAnswerAsNumber = parseFloat(userAnswer.trim().replace(',', '.'));
             if (!isNaN(userAnswerAsNumber)) {
                 isCorrect = userAnswerAsNumber === question.answer;
             }
         } else {
-            isCorrect = userAnswer.trim().toLowerCase() === String(question.answer).trim().toLowerCase();
+            isCorrect = isStringAnswerCorrect(userAnswer, String(question.answer));
         }
 
         onSubmit(isCorrect);
