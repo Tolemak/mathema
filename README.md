@@ -5,11 +5,12 @@
 2. [Użyte Technologie](#użyte-technologie)
 3. [Instrukcja Konfiguracji](#instrukcja-konfiguracji)
 4. [Jak Korzystać](#jak-korzystać)
-5. [Kolejne Kroki: Rozwój Backendu](#kolejne-kroki-rozwój-backendu)
+5. [Backend: API Tablicy Liderów](#backend-api-tablicy-liderów)
+6. [Kolejne Kroki: Rozwój Backendu](#kolejne-kroki-rozwój-backendu)
     - [Główne Cele](#główne-cele)
     - [Planowany Stos Technologiczny](#planowany-stos-technologiczny)
     - [Wpływ na Frontend](#wpływ-na-frontend)
-6. [Wkład w Projekt](#wkład-w-projekt)
+7. [Wkład w Projekt](#wkład-w-projekt)
 
 ## Opis Projektu
 Mathema to interaktywna aplikacja internetowa stworzona, aby pomóc użytkownikom ćwiczyć i doskonalić umiejętności matematyczne. Aplikacja prezentuje użytkownikom różnorodne zadania matematyczne z różnych kategorii i pozwala im sprawdzać swoją wiedzę w trybie interaktywnym lub przeglądać zestawy zadań. Użytkownicy mogą również śledzić swoje postępy i przeglądać wyniki w globalnej tabeli liderów.
@@ -21,6 +22,9 @@ Mathema to interaktywna aplikacja internetowa stworzona, aby pomóc użytkowniko
 - **React Router**: Do deklaratywnego routingu w aplikacji React.
 - **React Icons**: Do dołączania popularnych ikon do projektu.
 - **CSS**: Do stylizacji aplikacji, z naciskiem na globalne style i klasy wielokrotnego użytku.
+- **Node.js / Express**: Backend API obsługujący wspólną tablicę liderów (`server/`).
+- **better-sqlite3**: Trwałe przechowywanie wyników po stronie serwera.
+- **Vitest / Supertest**: Testy API backendu.
 
 ## Instrukcja Konfiguracji
 1. Sklonuj repozytorium:
@@ -52,24 +56,36 @@ Mathema to interaktywna aplikacja internetowa stworzona, aby pomóc użytkowniko
 - Uzyskaj dostęp do **Globalnej Tablicy Liderów** ze strony Postępów lub bezpośrednio, jeśli dostępny jest link, aby zobaczyć najlepsze wyniki. Wyniki gości są wyróżnione.
 - **Strona Postępów** obecnie zawiera link do tablicy liderów i jest planowana do przyszłych ulepszeń.
 
+## Backend: API Tablicy Liderów
+Katalog `server/` zawiera lekkie API (Node.js/Express + SQLite) obsługujące **prawdziwą, wspólną tablicę liderów** — wyniki są trwałe i widoczne dla wszystkich graczy, nie tylko lokalnie w przeglądarce.
+
+- `GET /leaderboard?category=&limit=` — najlepsze wyniki (opcjonalnie filtrowane po kategorii).
+- `GET /leaderboard/mine?clientId=&category=` — własny wynik gracza w danej kategorii (nawet spoza top wyników).
+- `POST /leaderboard` — zapis/aktualizacja wyniku (walidacja liczb, throttling per IP).
+
+Testy (`server/app.test.js`, Vitest + Supertest) pokrywają walidację, upsert, throttling i filtrowanie:
+```bash
+cd server
+npm install
+npm test
+```
+
 ## Kolejne Kroki: Rozwój Backendu
-Następna główna faza rozwoju Mathema obejmuje stworzenie systemu backendowego w celu wsparcia bardziej zaawansowanych funkcji i trwałości danych.
+Trwałość wyników i wspólna tablica liderów (punkty 2 i 3 poniżej) są już zrealizowane — patrz sekcja wyżej. Pozostała, większa faza rozwoju to pełne konta użytkowników.
 
 ### Główne Cele:
 1.  **Uwierzytelnianie Użytkowników:** Implementacja systemu rejestracji i logowania użytkowników.
-2.  **Trwałe Dane Użytkownika:** Przechowywanie postępów użytkownika, wyników i preferencji w bazie danych.
-3.  **Współdzielona Tablica Liderów:** Przeniesienie danych tablicy liderów do centralnej bazy danych, umożliwiając stworzenie prawdziwie globalnego i trwałego systemu rankingowego.
-4.  **Rozwój API:** Stworzenie API RESTful lub GraphQL do obsługi komunikacji między frontendem a backendem.
+2.  ~~**Trwałe Dane Użytkownika**~~ ✅ Wyniki są już trwale przechowywane po stronie serwera.
+3.  ~~**Współdzielona Tablica Liderów**~~ ✅ Zrealizowane — patrz [Backend: API Tablicy Liderów](#backend-api-tablicy-liderów).
+4.  ~~**Rozwój API**~~ ✅ Zrealizowane (REST, patrz wyżej).
 5.  **Zgłaszanie Zadań przez Użytkowników:** Umożliwienie zalogowanym użytkownikom zgłaszania własnych propozycji zadań do dodania do aplikacji (po weryfikacji).
 
-### Planowany Stos Technologiczny:
--   **Framework Backendowy:** (Do ustalenia - np. Node.js z Express, Python z Django/Flask lub inna odpowiednia technologia)
--   **Baza Danych:** **PostgreSQL**, hostowana na współdzielonej platformie, takiej jak [mikr.us](https://mikr.us) lub podobnej usłudze. Umożliwi to solidne przechowywanie danych i możliwości zapytań.
+### Planowany Stos Technologiczny (dla uwierzytelniania):
 -   **Uwierzytelnianie:** (Do ustalenia - np. JWT, OAuth)
 
 ### Wpływ na Frontend:
--   Integracja z nowym API do pobierania danych, przesyłania wyników i zarządzania sesjami użytkowników.
--   Aktualizacje komponentów UI w celu odzwierciedlenia stanów uwierzytelnionych użytkowników i wyświetlania trwałych danych.
+-   Integracja z nowym API do zarządzania sesjami użytkowników.
+-   Aktualizacje komponentów UI w celu odzwierciedlenia stanów uwierzytelnionych użytkowników.
 -   Ulepszona obsługa błędów i stany ładowania dla interakcji z API.
 
 ## Wkład w Projekt
