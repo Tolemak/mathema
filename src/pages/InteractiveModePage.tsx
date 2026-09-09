@@ -6,7 +6,7 @@ import LeaderboardTable, { LeaderboardEntry } from '../components/LeaderboardTab
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { setCookie, getCookie, eraseCookie } from '../utils/cookies';
 import { fetchLeaderboard, fetchMyEntry, submitLeaderboardEntry } from '../utils/leaderboardApi';
-import { FaArrowCircleLeft, FaRedo, FaListOl } from 'react-icons/fa'; // Import icons
+import { FaArrowCircleLeft, FaRedo, FaListOl } from 'react-icons/fa';
 
 const difficultyMultipliers: Record<Difficulty, number> = {
     'latwe': 1,
@@ -105,7 +105,7 @@ const InteractiveModePage: React.FC = () => {
         if (selectedCategory) {
             const initialQuestions = [...selectedCategory.questions];
             const guestName = getGuestId();
-            setGuestPlayerName(guestName); // Set guest player name
+            setGuestPlayerName(guestName);
 
             setScore(0);
             setLastGameEntry(null);
@@ -215,12 +215,6 @@ const InteractiveModePage: React.FC = () => {
             selectRandomQuestion(initialQuestions);
         }
     };
-
-    // const handleEndSessionEarly = () => {
-    //     setShowScoreboard(true);
-    //     setFinalDisplayedScore(score); 
-    //     setLeaderboardEntries(loadLeaderboardData(selectedCategory?.name)); 
-    // };
 
     const handleRestart = () => {
         restartCategory();
