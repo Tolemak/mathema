@@ -1,3 +1,5 @@
+name: mathema-api
+
 services:
   mathema-api:
     build:
