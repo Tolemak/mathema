@@ -1,17 +1,9 @@
-// TypeScript's bundled DOM lib only gained View Transition API types in a
-// newer release than this project's pinned TS version ships - declared
-// locally rather than bumping TypeScript just for this.
-interface DocumentWithViewTransitions extends Document {
-  startViewTransition(callback: () => void): { ready: Promise<void> };
-}
-
 export function radialViewTransition(originX: number, originY: number, apply: () => void) {
-  const doc = typeof document !== 'undefined' ? (document as DocumentWithViewTransitions) : undefined;
-  const supportsViewTransitions = !!doc && 'startViewTransition' in doc;
+  const supportsViewTransitions = typeof document !== 'undefined' && 'startViewTransition' in document;
   const prefersReducedMotion = typeof window !== 'undefined'
     && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-  if (!supportsViewTransitions || prefersReducedMotion || !doc) {
+  if (!supportsViewTransitions || prefersReducedMotion) {
     apply();
     return;
   }
@@ -21,7 +13,7 @@ export function radialViewTransition(originX: number, originY: number, apply: ()
     Math.max(originY, window.innerHeight - originY)
   );
 
-  const transition = doc.startViewTransition(() => {
+  const transition = document.startViewTransition(() => {
     apply();
   });
 
