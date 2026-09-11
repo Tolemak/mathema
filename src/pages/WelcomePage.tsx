@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { FaPencilAlt, FaChartLine, FaBookOpen } from 'react-icons/fa';
 import { categories } from '../data/mathProblems';
 import FeatureCard from '../components/FeatureCard'; 
@@ -7,8 +6,11 @@ import TaskCard from '../components/TaskCard';
 import '../styles/global.css';
 
 const WelcomePage: React.FC = () => {
-  const allQuestions = categories.flatMap(category => category.questions);
-  const exampleTasks = [...allQuestions].sort(() => 0.5 - Math.random()).slice(0, 3);
+  const [exampleTasks] = React.useState(() => {
+    const allQuestions = categories.flatMap(category => category.questions);
+
+    return [...allQuestions].sort(() => 0.5 - Math.random()).slice(0, 3);
+  });
 
   return (
     <div className="welcome-container">

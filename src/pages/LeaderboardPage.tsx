@@ -7,17 +7,19 @@ import { FaArrowCircleLeft } from 'react-icons/fa';
 
 const LeaderboardPage: React.FC = () => {
     const [allScores, setAllScores] = useState<LeaderboardEntry[]>([]);
-    const [guestPlayerName, setGuestPlayerName] = useState<string | null>(null);
+    const [guestPlayerName] = useState<string | null>(() => {
+        const currentGuestId = getCookie('guestId');
+
+        return currentGuestId?.startsWith('guest_')
+            ? `Gość ${currentGuestId.substring(6, 12)}`
+            : null;
+    });
     const [loadError, setLoadError] = useState(false);
 
     useEffect(() => {
         fetchLeaderboard(undefined, 100)
             .then(setAllScores)
             .catch(() => setLoadError(true));
-        const currentGuestId = getCookie('guestId');
-        if (currentGuestId && currentGuestId.startsWith('guest_')) {
-            setGuestPlayerName(`Gość ${currentGuestId.substring(6,12)}`);
-        }
     }, []);
 
     return (

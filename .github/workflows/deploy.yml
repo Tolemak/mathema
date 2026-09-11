@@ -24,6 +24,21 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Install API dependencies
+        run: npm ci
+        working-directory: server
+
+      - name: Test API
+        run: npm test
+        working-directory: server
+
       - run: npm run build
       - name: Copy .htaccess and error pages
         run: |

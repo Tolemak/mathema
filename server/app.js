@@ -111,18 +111,26 @@ function createApp(dbPath) {
          score = excluded.score,
          difficulty = excluded.difficulty,
          school_level = excluded.school_level,
-         updated_at = excluded.updated_at`
+         updated_at = excluded.updated_at
+       WHERE excluded.score > scores.score`
     ).run({ clientId, categoryName, playerName, score, difficulty, schoolLevel, updatedAt });
+
+    // A weaker run leaves the previous score in place, so report what is stored
+    // rather than what was sent.
+    const stored = db.prepare(
+      `SELECT player_name, score, difficulty, school_level, updated_at
+       FROM scores WHERE client_id = ? AND category_name = ?`
+    ).get(clientId, categoryName);
 
     res.status(201).json({
       id: `${clientId}-${categoryName}`,
       clientId,
       categoryName,
-      playerName,
-      score,
-      difficulty,
-      schoolLevel,
-      date: updatedAt,
+      playerName: stored.player_name,
+      score: stored.score,
+      difficulty: stored.difficulty,
+      schoolLevel: stored.school_level,
+      date: stored.updated_at,
     });
   });
 

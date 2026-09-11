@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { categories, Category, SchoolLevel } from '../data/mathProblems';
 import { FaArrowCircleLeft } from 'react-icons/fa';
@@ -24,15 +24,20 @@ const PracticeAreaPage: React.FC = () => {
     const location = useLocation(); 
     const [expandedLevels, setExpandedLevels] = useState<Record<string, boolean>>({});
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedMode, setSelectedMode] = useState<'browse' | 'interactive'>('browse');
+    const modeFromQuery = new URLSearchParams(location.search).get('mode');
+    const modeInUrl = modeFromQuery === 'interactive' || modeFromQuery === 'browse' ? modeFromQuery : null;
 
-    useEffect(() => {
-        const queryParams = new URLSearchParams(location.search);
-        const modeFromQuery = queryParams.get('mode') as 'browse' | 'interactive' | null;
-        if (modeFromQuery) {
-            setSelectedMode(modeFromQuery);
+    const [selectedMode, setSelectedMode] = useState<'browse' | 'interactive'>(modeInUrl ?? 'browse');
+    const [appliedSearch, setAppliedSearch] = useState(location.search);
+
+    // The mode lives in the URL but stays switchable by the buttons below, so it
+    // is re-synced on navigation rather than mirrored from an effect.
+    if (appliedSearch !== location.search) {
+        setAppliedSearch(location.search);
+        if (modeInUrl !== null) {
+            setSelectedMode(modeInUrl);
         }
-    }, [location.search]);
+    }
 
     const groupedCategories = useMemo(() => {
         const groups: Partial<Record<SchoolLevel, Category[]>> = {};

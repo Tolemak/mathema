@@ -81,6 +81,25 @@ describe('mathema leaderboard API', () => {
       expect(listRes.body[0]).toMatchObject({ score: 20, playerName: 'Updated' });
     });
 
+    it('keeps the better score when a weaker one is submitted later', async () => {
+      await request(app).post('/leaderboard').send({ clientId: 'guest_9', categoryName: 'Algebra', score: 500, playerName: 'Best' });
+
+      vi.useFakeTimers();
+      vi.advanceTimersByTime(3000);
+      const res = await request(app)
+        .post('/leaderboard')
+        .send({ clientId: 'guest_9', categoryName: 'Algebra', score: 12, playerName: 'Worse' });
+      vi.useRealTimers();
+
+      // The response reports what is stored, not what was sent.
+      expect(res.status).toBe(201);
+      expect(res.body).toMatchObject({ score: 500, playerName: 'Best' });
+
+      const listRes = await request(app).get('/leaderboard?category=Algebra');
+      expect(listRes.body).toHaveLength(1);
+      expect(listRes.body[0]).toMatchObject({ score: 500, playerName: 'Best' });
+    });
+
     it('throttles rapid submissions from the same IP', async () => {
       const first = await request(app)
         .post('/leaderboard')

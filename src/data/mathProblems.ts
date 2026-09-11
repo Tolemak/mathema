@@ -227,12 +227,12 @@ export const categories: Category[] = [
             { id: 'calc12', text: "Oblicz całkę ∫ 1/x dx.", answer: "ln|x| + C", schoolLevel: 'liceum_rozsz', difficulty: 'srednie' },
             { id: 'calc13', text: "Co oznacza f'(x) > 0 na przedziale (a,b)?", answer: "Funkcja jest rosnąca na (a,b)", schoolLevel: 'liceum_rozsz', difficulty: 'srednie' },
             { id: 'calc14', text: "Oblicz granicę lim (x->0) sin(x)/x.", answer: 1, schoolLevel: 'studia_tech_1rok', difficulty: 'trudne' },
-            { id: 'calc15', text: "Oblicz pochodną funkcji złożonej: (f(g(x)))\' = ?", answer: "f\'(g(x)) * g\'(x) (reguła łańcuchowa)", schoolLevel: 'liceum_rozsz', difficulty: 'srednie' },
+            { id: 'calc15', text: "Oblicz pochodną funkcji złożonej: (f(g(x)))' = ?", answer: "f'(g(x)) * g'(x) (reguła łańcuchowa)", schoolLevel: 'liceum_rozsz', difficulty: 'srednie' },
             { id: 'calc16', text: "Oblicz całkę oznaczoną ∫ (od 1 do e) 1/x dx.", answer: 1, schoolLevel: 'studia_tech_1rok', difficulty: 'srednie' },
             { id: 'calc17', text: "Co to jest asymptota pozioma funkcji?", answer: "Prosta y=a, do której wykres funkcji zbliża się, gdy x dąży do ±nieskończoności.", schoolLevel: 'liceum_rozsz', difficulty: 'srednie' },
             { id: 'calc18', text: "Oblicz pochodną funkcji f(x) = x^n.", answer: "n*x^(n-1)", schoolLevel: 'liceum_rozsz', difficulty: 'latwe' },
             { id: 'calc19', text: "Podaj interpretację geometryczną całki oznaczonej ∫ (od a do b) f(x) dx, gdy f(x) >= 0.", answer: "Pole obszaru pod wykresem funkcji f(x) od x=a do x=b.", schoolLevel: 'liceum_rozsz', difficulty: 'srednie' },
-            { id: 'calc20', text: "Znajdź punkty przegięcia funkcji f(x) = x^3 - 3x^2.", answer: "x=1 (f\'\'(x) = 6x - 6, f\'\'(x)=0 dla x=1)", schoolLevel: 'studia_tech_1rok', difficulty: 'trudne' }
+            { id: 'calc20', text: "Znajdź punkty przegięcia funkcji f(x) = x^3 - 3x^2.", answer: "x=1 (f''(x) = 6x - 6, f''(x)=0 dla x=1)", schoolLevel: 'studia_tech_1rok', difficulty: 'trudne' }
         ]
     },
     {
@@ -256,7 +256,7 @@ export const categories: Category[] = [
             { id: 'log15', text: "Podaj przykład zdania złożonego, które jest zawsze fałszywe (sprzeczność).", answer: "p ∧ ¬p", schoolLevel: 'liceum_podst', difficulty: 'srednie' },
             { id: 'log16', text: "Co to jest kwantyfikator ogólny i szczegółowy?", answer: "Ogólny (∀) - \"dla każdego\", szczegółowy (∃) - \"istnieje\".", schoolLevel: 'liceum_podst', difficulty: 'srednie' },
             { id: 'log17', text: "Jeśli A jest zbiorem liczb parzystych, a B zbiorem liczb podzielnych przez 3, co reprezentuje A ∩ B?", answer: "Zbiór liczb podzielnych przez 6.", schoolLevel: 'liceum_podst', difficulty: 'srednie' },
-            { id: 'log18', text: "Co to jest dopełnienie zbioru A (A\')?", answer: "Zbiór wszystkich elementów przestrzeni U, które nie należą do A.", schoolLevel: 'podstawowa_7_8', difficulty: 'latwe' },
+            { id: 'log18', text: "Co to jest dopełnienie zbioru A (A')?", answer: "Zbiór wszystkich elementów przestrzeni U, które nie należą do A.", schoolLevel: 'podstawowa_7_8', difficulty: 'latwe' },
             { id: 'log19', text: "Czy zbiór liczb wymiernych jest przeliczalny?", answer: "Tak", schoolLevel: 'liceum_rozsz', difficulty: 'trudne' },
             { id: 'log20', text: "Podaj prawo kontrapozycji dla implikacji (p ⇒ q).", answer: "(¬q ⇒ ¬p)", schoolLevel: 'liceum_podst', difficulty: 'srednie' }
         ]
