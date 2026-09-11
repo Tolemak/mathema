@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { categories, Question as QuestionType, Category, SchoolLevel, Difficulty } from '../data/mathProblems';
+import { categories, Question as QuestionType, SchoolLevel, Difficulty } from '../data/mathProblems';
 import Question from '../components/Question';
 import Scoreboard from '../components/Scoreboard';
 import LeaderboardTable, { LeaderboardEntry } from '../components/LeaderboardTable';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { setCookie, getCookie, eraseCookie } from '../utils/cookies';
+import { setCookie, getCookie } from '../utils/cookies';
 import { fetchLeaderboard, fetchMyEntry, submitLeaderboardEntry } from '../utils/leaderboardApi';
-import { FaArrowCircleLeft, FaRedo, FaListOl } from 'react-icons/fa';
+import { FaListOl } from 'react-icons/fa';
 
 const difficultyMultipliers: Record<Difficulty, number> = {
     'latwe': 1,
@@ -83,7 +83,7 @@ const InteractiveModePage: React.FC = () => {
     const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
     const [finalDisplayedScore, setFinalDisplayedScore] = useState<number>(0);
     const [lastGameEntry, setLastGameEntry] = useState<LeaderboardEntry | null>(null); 
-    const [guestPlayerName, setGuestPlayerName] = useState<string>('');
+    const [guestPlayerName] = useState<string>(getGuestId);
 
     const selectRandomQuestion = useCallback((questions: QuestionType[]) => {
         if (questions.length === 0) {
@@ -101,11 +101,14 @@ const InteractiveModePage: React.FC = () => {
         setCurrentTimePerQuestion(0);     
     }, [setShowScoreboard, setCurrentQuestion, setAvailableQuestions, setQuestionStartTime, setCurrentTimePerQuestion]); 
 
+    // Resetting a session from an effect is the wrong shape - it should come
+    // from remounting on categoryId. That is part of the pending rework of this
+    // page, so the rule stays on everywhere else in the meantime.
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (selectedCategory) {
             const initialQuestions = [...selectedCategory.questions];
-            const guestName = getGuestId();
-            setGuestPlayerName(guestName);
+            const guestName = guestPlayerName;
 
             setScore(0);
             setLastGameEntry(null);
@@ -126,10 +129,11 @@ const InteractiveModePage: React.FC = () => {
         } else {
             navigate('/practice');
         }
-    }, [selectedCategory, categoryId, navigate]);
+    }, [selectedCategory, categoryId, navigate, guestPlayerName, selectRandomQuestion]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     useEffect(() => {
-        let timerId: number | null = null; 
+        let timerId: number | null = null;
         if (questionStartTime > 0 && !showScoreboard) {
             timerId = window.setInterval(() => { 
                 setCurrentTimePerQuestion((Date.now() - questionStartTime) / 1000);
@@ -147,57 +151,54 @@ const InteractiveModePage: React.FC = () => {
         const timeTaken = (Date.now() - questionStartTime) / 1000; 
         setTotalSessionTime(prevTime => prevTime + timeTaken); 
 
-        let pointsForThisQuestion = 0;
         let currentCumulativeScore = score;
 
         if (isCorrect) {
             const difficultyMultiplier = difficultyMultipliers[currentQuestion.difficulty];
             const schoolLevelMultiplier = schoolLevelMultipliers[currentQuestion.schoolLevel];
-            
-            let timeBonus = 0;
-            if (timeTaken <= MAX_TIME_BONUS_SECONDS) {
-                timeBonus = (MAX_TIME_BONUS_SECONDS - timeTaken) / MAX_TIME_BONUS_SECONDS; 
-            } else {
-                timeBonus = - ( (timeTaken - MAX_TIME_BONUS_SECONDS) * TIME_PENALTY_FACTOR / MAX_TIME_BONUS_SECONDS );
-            }
+
+            const timeBonus = timeTaken <= MAX_TIME_BONUS_SECONDS
+                ? (MAX_TIME_BONUS_SECONDS - timeTaken) / MAX_TIME_BONUS_SECONDS
+                : -((timeTaken - MAX_TIME_BONUS_SECONDS) * TIME_PENALTY_FACTOR / MAX_TIME_BONUS_SECONDS);
+
             const basePoints = BASE_SCORE_PER_QUESTION * difficultyMultiplier * schoolLevelMultiplier;
-            const pointsFromTimeBonus = basePoints * timeBonus;
-            pointsForThisQuestion = basePoints + pointsFromTimeBonus;
-            
-            pointsForThisQuestion = Math.max(pointsForThisQuestion, basePoints * 0.2); 
+            const pointsForThisQuestion = Math.max(basePoints + basePoints * timeBonus, basePoints * 0.2);
 
-            currentCumulativeScore += pointsForThisQuestion; 
-            setScore(currentCumulativeScore); 
-
-            if (selectedCategory) {
-                const guestName = getGuestId();
-                const newEntry: LeaderboardEntry = {
-                    id: `${guestName}-${selectedCategory.name}`,
-                    playerName: guestName.startsWith('guest_') ? `Gość ${guestName.substring(6,12)}` : guestName,
-                    score: Math.round(currentCumulativeScore),
-                    categoryName: selectedCategory.name,
-                    date: new Date().toISOString(),
-                    difficulty: currentQuestion.difficulty,
-                    schoolLevel: currentQuestion.schoolLevel,
-                };
-                setLastGameEntry(newEntry);
-                saveLeaderboardData(guestName, newEntry).then(() =>
-                    loadLeaderboardData(selectedCategory.name).then(setLeaderboardEntries)
-                );
-            }
+            currentCumulativeScore += pointsForThisQuestion;
+            setScore(currentCumulativeScore);
         }
-        
+
         setQuestionsAnswered(prevCount => prevCount + 1);
 
         if (availableQuestions.length > 0) {
             selectRandomQuestion(availableQuestions);
-        } else {
-            setFinalDisplayedScore(currentCumulativeScore); 
-            setShowScoreboard(true);
-            setCurrentQuestion(null); 
-            setQuestionStartTime(0); 
-            setCurrentTimePerQuestion(0); 
+            return;
         }
+
+        setFinalDisplayedScore(currentCumulativeScore);
+        setShowScoreboard(true);
+        setCurrentQuestion(null);
+        setQuestionStartTime(0);
+        setCurrentTimePerQuestion(0);
+
+        // Submitted once per session: the API throttles a client to one write
+        // every couple of seconds, so a POST per answer was mostly rejected.
+        const entry: LeaderboardEntry = {
+            id: `${guestPlayerName}-${selectedCategory.name}`,
+            playerName: guestPlayerName.startsWith('guest_')
+                ? `Gość ${guestPlayerName.substring(6, 12)}`
+                : guestPlayerName,
+            score: Math.round(currentCumulativeScore),
+            categoryName: selectedCategory.name,
+            date: new Date().toISOString(),
+            difficulty: currentQuestion.difficulty,
+            schoolLevel: currentQuestion.schoolLevel,
+        };
+
+        setLastGameEntry(entry);
+        saveLeaderboardData(guestPlayerName, entry).then(() =>
+            loadLeaderboardData(selectedCategory.name).then(setLeaderboardEntries)
+        );
     };
 
     const restartCategory = () => {
@@ -216,10 +217,6 @@ const InteractiveModePage: React.FC = () => {
         }
     };
 
-    const handleRestart = () => {
-        restartCategory();
-    };
-
     if (!selectedCategory) {
         return (
             <div className="page-container">
@@ -229,7 +226,7 @@ const InteractiveModePage: React.FC = () => {
     }
 
     if (showScoreboard) {
-        let finalEntriesForTable = [...leaderboardEntries];
+        const finalEntriesForTable = [...leaderboardEntries];
         let currentHighlightId: string | undefined = undefined;
 
         if (lastGameEntry && selectedCategory && lastGameEntry.categoryName === selectedCategory.name) {
@@ -273,70 +270,28 @@ const InteractiveModePage: React.FC = () => {
         );
     }
     
-    const currentMultiplier = currentQuestion ? (difficultyMultipliers[currentQuestion.difficulty] * schoolLevelMultipliers[currentQuestion.schoolLevel]).toFixed(1) : '1';
 
     return (
         <div className="page-container interactive-mode-page">
-            {selectedCategory ? (
-                <>
-                    <h1>Tryb Interaktywny: {selectedCategory.name}</h1>
-                    
-                    {showScoreboard ? (
-                        <div className="finish-message">
-                            <h2>Gratulacje! Ukończyłeś kategorię!</h2>
-                            <p>Twój ostateczny wynik: {Math.round(finalDisplayedScore)}</p>
-                            <p>Całkowity czas: {totalSessionTime.toFixed(1)} sekund</p>
-                            <p>Odpowiedziałeś na {questionsAnswered} pytań.</p>
-                            
-                            {leaderboardEntries.length > 0 && (
-                                <div className="leaderboard-section">
-                                    <h3>Ranking dla tej kategorii:</h3>
-                                    <LeaderboardTable 
-                                        entries={leaderboardEntries} 
-                                        highlightPlayerName={guestPlayerName} 
-                                    />
-                                </div>
-                            )}
+            <h1>Tryb Interaktywny: {selectedCategory.name}</h1>
 
-                            <div className="navigation-buttons">
-                                <button onClick={handleRestart} className="button">
-                                    <FaRedo className="nav-button-icon" /> Spróbuj ponownie
-                                </button>
-                                <Link to="/practice?mode=interactive" className="nav-button-link secondary">
-                                    <FaListOl className="nav-button-icon" /> Wybierz inną kategorię
-                                </Link>
-                                <Link to="/" className="nav-button-link secondary">
-                                    <FaArrowCircleLeft className="nav-button-icon" /> Strona główna
-                                </Link>
-                            </div>
-                        </div>
-                    ) : currentQuestion ? (
-                        <>
-                            <Scoreboard 
-                                score={Math.round(score)} 
-                                questionsAnswered={questionsAnswered} 
-                                totalQuestions={selectedCategory.questions.length} 
-                                timeLeft={currentTimePerQuestion} 
-                                lastGameScore={lastGameEntry ? Math.round(lastGameEntry.score) : undefined}
-                            />
-                            <Question 
-                                question={currentQuestion} 
-                                onSubmit={handleAnswerSubmit} 
-                                key={currentQuestion.id} 
-                            />
-                            <div className="interactive-mode-controls">
-                                <Link to="/practice?mode=interactive" className="button secondary small nav-button-link">
-                                    <FaListOl className="nav-button-icon" /> Wróć do wyboru kategorii
-                                </Link>
-                            </div>
-                        </>
-                    ) : (
-                        <p className="loading-message">Ładowanie pytania...</p>
-                    )}
-                </>
-            ) : (
-                <p className="loading-message">Ładowanie kategorii...</p>
-            )}
+            <Scoreboard
+                score={Math.round(score)}
+                questionsAnswered={questionsAnswered}
+                totalQuestions={selectedCategory.questions.length}
+                timeLeft={currentTimePerQuestion}
+                lastGameScore={lastGameEntry ? Math.round(lastGameEntry.score) : undefined}
+            />
+            <Question
+                question={currentQuestion}
+                onSubmit={handleAnswerSubmit}
+                key={currentQuestion.id}
+            />
+            <div className="interactive-mode-controls">
+                <Link to="/practice?mode=interactive" className="button secondary small nav-button-link">
+                    <FaListOl className="nav-button-icon" /> Wróć do wyboru kategorii
+                </Link>
+            </div>
         </div>
     );
 };

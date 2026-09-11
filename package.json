@@ -5,8 +5,10 @@
   "main": "src/main.tsx",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview"
+    "build": "tsc --noEmit && vite build",
+    "serve": "vite preview",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "math",
@@ -15,19 +17,25 @@
     "react",
     "vite"
   ],
-  "author": "Your Name",
+  "author": "Kamil Gałkowski",
   "license": "MIT",
   "dependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-icons": "^4.12.0",
-    "react-router-dom": "^7.6.2",
-    "vite": "^4.0.0"
+    "react-router-dom": "^7.6.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@vitejs/plugin-react": "^4.5.1",
-    "typescript": "^7.0.2"
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "typescript": "~6.0",
+    "typescript-eslint": "^8.70.0",
+    "vite": "^4.0.0"
   }
 }

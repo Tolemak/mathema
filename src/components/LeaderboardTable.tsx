@@ -31,28 +31,28 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries, title = "T
   });
 
   return (
-    <div className="leaderboard-container" style={{ marginTop: '30px', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
-      <h3 style={{ textAlign: 'center', marginBottom: '20px' }}>{title}</h3>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    <div className="leaderboard-container">
+      <h3 className="leaderboard-title">{title}</h3>
+      <table className="leaderboard-table">
         <thead>
           <tr>
-            <th style={{ borderBottom: '2px solid #ddd', padding: '10px', textAlign: 'left' }}>#</th>
-            <th style={{ borderBottom: '2px solid #ddd', padding: '10px', textAlign: 'left' }}>Gracz</th>
-            <th style={{ borderBottom: '2px solid #ddd', padding: '10px', textAlign: 'left' }}>Wynik</th>
-            <th style={{ borderBottom: '2px solid #ddd', padding: '10px', textAlign: 'left' }}>Kategoria</th>
-            <th style={{ borderBottom: '2px solid #ddd', padding: '10px', textAlign: 'left' }}>Data</th>
+            <th>#</th>
+            <th>Gracz</th>
+            <th>Wynik</th>
+            <th>Kategoria</th>
+            <th>Data</th>
           </tr>
         </thead>
         <tbody>
           {sortedEntries.map((entry, index) => {
             const isHighlighted = highlightEntryId ? entry.id === highlightEntryId : (highlightPlayerName ? entry.playerName === highlightPlayerName : false);
             return (
-              <tr key={entry.id} style={isHighlighted ? { backgroundColor: '#e6ffed' } : {}}>
-                <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{index + 1}</td>
-                <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{entry.playerName}</td>
-                <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{Math.round(entry.score)}</td>
-                <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{entry.categoryName}</td>
-                <td style={{ borderBottom: '1px solid #eee', padding: '10px' }}>{new Date(entry.date).toLocaleDateString()}</td>
+              <tr key={entry.id} className={isHighlighted ? 'highlighted-player' : undefined}>
+                <td>{index + 1}</td>
+                <td>{entry.playerName}</td>
+                <td>{Math.round(entry.score)}</td>
+                <td>{entry.categoryName}</td>
+                <td>{new Date(entry.date).toLocaleDateString()}</td>
               </tr>
             );
           })}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/useTheme';
 import { radialViewTransition } from '../utils/viewTransition';
 
 const ThemeToggle: React.FC = () => {

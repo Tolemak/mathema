@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { categories, Question as QuestionType, Category, SchoolLevel, Difficulty } from '../data/mathProblems';
+import { categories, SchoolLevel, Difficulty } from '../data/mathProblems';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { FaArrowCircleLeft } from 'react-icons/fa';
 
@@ -12,11 +12,16 @@ const BrowseModePage: React.FC = () => {
     const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | 'all'>('all');
     const [visibleAnswers, setVisibleAnswers] = useState<Record<string, boolean>>({});
 
+    const [browsedCategoryId, setBrowsedCategoryId] = useState(categoryId);
+
+    if (browsedCategoryId !== categoryId) {
+        setBrowsedCategoryId(categoryId);
+        setVisibleAnswers({});
+    }
+
     useEffect(() => {
         if (!selectedCategory) {
             navigate('/practice');
-        } else {
-            setVisibleAnswers({});
         }
     }, [selectedCategory, navigate]);
 
