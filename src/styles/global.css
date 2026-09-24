@@ -89,6 +89,16 @@ body {
   width: 100%;
 }
 
+.footer-links a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
 .theme-toggle-btn {
   position: fixed;
   top: 16px;
