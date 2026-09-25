@@ -1,28 +1,25 @@
 import React from 'react';
 
 export interface LeaderboardEntry {
-  id: string; 
+  id: number;
   playerName: string;
   score: number;
+  categoryId: string;
   categoryName: string;
-  date: string; 
-  difficulty?: string; 
-  schoolLevel?: string; 
+  date: string;
+  mine: boolean;
 }
 
 interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
   title?: string;
-  highlightEntryId?: string; 
-  highlightPlayerName?: string;
 }
 
-const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries, title = "Tablica Wyników", highlightEntryId, highlightPlayerName }) => {
+const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries, title = "Tablica Wyników" }) => {
   if (!entries || entries.length === 0) {
     return <p style={{ textAlign: 'center', margin: '20px 0' }}>Brak wyników do wyświetlenia.</p>;
   }
 
-  
   const sortedEntries = [...entries].sort((a, b) => {
     if (b.score !== a.score) {
       return b.score - a.score;
@@ -44,18 +41,15 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries, title = "T
           </tr>
         </thead>
         <tbody>
-          {sortedEntries.map((entry, index) => {
-            const isHighlighted = highlightEntryId ? entry.id === highlightEntryId : (highlightPlayerName ? entry.playerName === highlightPlayerName : false);
-            return (
-              <tr key={entry.id} className={isHighlighted ? 'highlighted-player' : undefined}>
-                <td>{index + 1}</td>
-                <td>{entry.playerName}</td>
-                <td>{Math.round(entry.score)}</td>
-                <td>{entry.categoryName}</td>
-                <td>{new Date(entry.date).toLocaleDateString()}</td>
-              </tr>
-            );
-          })}
+          {sortedEntries.map((entry, index) => (
+            <tr key={entry.id} className={entry.mine ? 'highlighted-player' : undefined}>
+              <td>{index + 1}</td>
+              <td>{entry.playerName}</td>
+              <td>{Math.round(entry.score)}</td>
+              <td>{entry.categoryName}</td>
+              <td>{new Date(entry.date).toLocaleDateString()}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

@@ -1,142 +1,151 @@
-const express = require('express');
-const Database = require('better-sqlite3');
+import { STATUS_CODES } from 'node:http';
+import express from 'express';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
+import { createLeaderboard } from './leaderboard.js';
+import { findCategory } from './questionBank.js';
+import { DEFAULT_TRUST_PROXY } from './trustProxy.js';
 
-const MAX_SCORE = 100000;
-const MAX_NAME_LEN = 40;
-const MAX_STR_LEN = 100;
-const SUBMIT_INTERVAL_MS = 2000;
+export const PLAYER_COOKIE = 'mathema_player';
 
-function clampString(value, maxLen) {
-  if (typeof value !== 'string') return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  return trimmed.slice(0, maxLen);
+const PLAYER_COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
+const ROUND_ID_PATTERN = /^[A-Za-z0-9_-]{22}$/;
+const PLAYER_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
+const MAX_LIMIT = 100;
+
+const DEFAULT_LIMITS = {
+  rounds: { windowMs: 10 * 60 * 1000, limit: 300 },
+  answers: { windowMs: 10 * 60 * 1000, limit: 5000 },
+  reads: { windowMs: 60 * 1000, limit: 300 },
+};
+
+function limiter({ windowMs, limit }) {
+  return rateLimit({
+    windowMs,
+    limit,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res) => res.status(429).json({ error: 'Too many requests.' }),
+  });
 }
 
-// Builds a fresh Express app + SQLite connection against dbPath. Used as the
-// real entrypoint (a file on disk) and by tests (':memory:' for isolation).
-function createApp(dbPath) {
-  const db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS scores (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      client_id TEXT NOT NULL,
-      category_name TEXT NOT NULL,
-      player_name TEXT NOT NULL,
-      score REAL NOT NULL,
-      difficulty TEXT,
-      school_level TEXT,
-      updated_at TEXT NOT NULL,
-      UNIQUE(client_id, category_name)
-    );
-  `);
+function readCookie(req, name) {
+  for (const part of (req.headers.cookie ?? '').split(';')) {
+    const separator = part.indexOf('=');
+    if (separator !== -1 && part.slice(0, separator).trim() === name) return part.slice(separator + 1).trim();
+  }
+  return null;
+}
 
-  // Minimal per-IP throttle: one submission every 2s. Good enough to deter
-  // trivial spam without adding an extra dependency for a low-traffic app.
-  const lastSubmitByIp = new Map();
+function parseLimit(value) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isNaN(parsed) ? MAX_LIMIT : Math.min(Math.max(parsed, 1), MAX_LIMIT);
+}
+
+function toEntry(row, viewer) {
+  return {
+    id: row.id,
+    playerName: row.player_name,
+    score: row.score,
+    categoryId: row.category_id,
+    categoryName: findCategory(row.category_id)?.name ?? row.category_id,
+    date: row.updated_at,
+    mine: viewer?.id === row.player_id,
+  };
+}
+
+const fail = (res, status, error) => res.status(status).json({ error });
+
+export function createApp({ db, now = Date.now, trustProxy = DEFAULT_TRUST_PROXY, limits = {} }) {
+  const leaderboard = createLeaderboard(db);
+  const limitsFor = (name) => ({ ...DEFAULT_LIMITS[name], ...limits[name] });
+  const roundsLimiter = limiter(limitsFor('rounds'));
+  const answersLimiter = limiter(limitsFor('answers'));
+  const readsLimiter = limiter(limitsFor('reads'));
 
   const app = express();
-  // Sits behind Apache's ProxyPass on the same host — trust only the loopback
-  // hop so req.ip reflects the real client via X-Forwarded-For.
-  app.set('trust proxy', 'loopback');
-  app.use(express.json({ limit: '10kb' }));
+  app.set('trust proxy', trustProxy);
+  app.use(helmet({
+    contentSecurityPolicy: { useDefaults: false, directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } },
+  }));
+  app.use(express.json({ limit: '2kb' }));
 
-  app.get('/leaderboard', (req, res) => {
-    const category = clampString(req.query.category, MAX_STR_LEN);
-    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 100, 1), 100);
-
-    const rows = category
-      ? db.prepare(
-          `SELECT client_id as clientId, player_name as playerName, score, category_name as categoryName,
-                  difficulty, school_level as schoolLevel, updated_at as date
-           FROM scores WHERE category_name = ? ORDER BY score DESC, updated_at DESC LIMIT ?`
-        ).all(category, limit)
-      : db.prepare(
-          `SELECT client_id as clientId, player_name as playerName, score, category_name as categoryName,
-                  difficulty, school_level as schoolLevel, updated_at as date
-           FROM scores ORDER BY score DESC, updated_at DESC LIMIT ?`
-        ).all(limit);
-
-    res.json(rows.map((row) => ({ ...row, id: `${row.clientId}-${row.categoryName}` })));
+  app.use((req, res, next) => {
+    const token = readCookie(req, PLAYER_COOKIE);
+    req.player = token && PLAYER_TOKEN_PATTERN.test(token) ? leaderboard.findPlayer(token) : null;
+    next();
   });
 
-  app.get('/leaderboard/mine', (req, res) => {
-    const clientId = clampString(req.query.clientId, 64);
-    const category = clampString(req.query.category, MAX_STR_LEN);
-    if (!clientId || !category) return res.status(400).json({ error: 'Missing clientId or category.' });
-
-    const row = db.prepare(
-      `SELECT client_id as clientId, player_name as playerName, score, category_name as categoryName,
-              difficulty, school_level as schoolLevel, updated_at as date
-       FROM scores WHERE client_id = ? AND category_name = ?`
-    ).get(clientId, category);
-
-    res.json(row ? { ...row, id: `${row.clientId}-${row.categoryName}` } : null);
-  });
-
-  app.post('/leaderboard', (req, res) => {
-    const ip = req.ip;
-    const now = Date.now();
-    const last = lastSubmitByIp.get(ip) || 0;
-    if (now - last < SUBMIT_INTERVAL_MS) {
-      return res.status(429).json({ error: 'Too many submissions, slow down.' });
-    }
-
-    const clientId = clampString(req.body.clientId, 64);
-    const categoryName = clampString(req.body.categoryName, MAX_STR_LEN);
-    const playerName = clampString(req.body.playerName, MAX_NAME_LEN) || 'Gość';
-    const difficulty = clampString(req.body.difficulty, 32);
-    const schoolLevel = clampString(req.body.schoolLevel, 32);
-    const score = Number(req.body.score);
-
-    if (!clientId || !categoryName || !Number.isFinite(score) || score < 0 || score > MAX_SCORE) {
-      return res.status(400).json({ error: 'Invalid payload.' });
-    }
-
-    lastSubmitByIp.set(ip, now);
-    // Prune the throttle map occasionally so it doesn't grow unbounded.
-    if (lastSubmitByIp.size > 5000) {
-      for (const [key, ts] of lastSubmitByIp) {
-        if (now - ts > 60000) lastSubmitByIp.delete(key);
-      }
-    }
-
-    const updatedAt = new Date().toISOString();
-    db.prepare(
-      `INSERT INTO scores (client_id, category_name, player_name, score, difficulty, school_level, updated_at)
-       VALUES (@clientId, @categoryName, @playerName, @score, @difficulty, @schoolLevel, @updatedAt)
-       ON CONFLICT(client_id, category_name) DO UPDATE SET
-         player_name = excluded.player_name,
-         score = excluded.score,
-         difficulty = excluded.difficulty,
-         school_level = excluded.school_level,
-         updated_at = excluded.updated_at
-       WHERE excluded.score > scores.score`
-    ).run({ clientId, categoryName, playerName, score, difficulty, schoolLevel, updatedAt });
-
-    // A weaker run leaves the previous score in place, so report what is stored
-    // rather than what was sent.
-    const stored = db.prepare(
-      `SELECT player_name, score, difficulty, school_level, updated_at
-       FROM scores WHERE client_id = ? AND category_name = ?`
-    ).get(clientId, categoryName);
-
-    res.status(201).json({
-      id: `${clientId}-${categoryName}`,
-      clientId,
-      categoryName,
-      playerName: stored.player_name,
-      score: stored.score,
-      difficulty: stored.difficulty,
-      schoolLevel: stored.school_level,
-      date: stored.updated_at,
-    });
-  });
+  function loadRound(req, res, next) {
+    const round = ROUND_ID_PATTERN.test(req.params.roundId) ? leaderboard.findRound(req.params.roundId, now()) : null;
+    if (!round) return fail(res, 404, 'Round not found or expired.');
+    req.round = round;
+    next();
+  }
 
   app.get('/health', (_req, res) => res.json({ ok: true }));
 
-  return { app, db };
-}
+  app.get('/leaderboard', readsLimiter, (req, res) => {
+    const category = req.query.category === undefined ? null : findCategory(req.query.category);
+    if (req.query.category !== undefined && !category) return fail(res, 400, 'Unknown category.');
 
-module.exports = { createApp };
+    const rows = leaderboard.top(category?.id, parseLimit(req.query.limit));
+    res.json(rows.map((row) => toEntry(row, req.player)));
+  });
+
+  app.get('/leaderboard/mine', readsLimiter, (req, res) => {
+    const category = findCategory(req.query.category);
+    if (!category) return fail(res, 400, 'Unknown category.');
+
+    const row = req.player ? leaderboard.entryFor(req.player.id, category.id) : null;
+    res.json(row ? toEntry(row, req.player) : null);
+  });
+
+  app.post('/rounds', roundsLimiter, (req, res) => {
+    const category = findCategory(req.body?.categoryId);
+    if (!category) return fail(res, 400, 'Unknown category.');
+
+    res.status(201).json({ roundId: leaderboard.startRound(category.id, now()) });
+  });
+
+  app.post('/rounds/:roundId/answers', answersLimiter, loadRound, (req, res) => {
+    const { questionId, correct } = req.body ?? {};
+    const question = typeof questionId === 'string'
+      ? findCategory(req.round.category_id)?.questionsById.get(questionId)
+      : undefined;
+    if (!question || typeof correct !== 'boolean') return fail(res, 400, 'Invalid answer.');
+
+    const result = leaderboard.recordAnswer(req.round, question, correct, now());
+    if (!result) return fail(res, 409, 'Question already answered in this round.');
+    res.json(result);
+  });
+
+  app.post('/rounds/:roundId/finish', roundsLimiter, loadRound, (req, res) => {
+    let player = req.player;
+    if (!player && Math.round(req.round.score) > 0) {
+      const created = leaderboard.createPlayer(now());
+      player = created.player;
+      res.cookie(PLAYER_COOKIE, created.token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: PLAYER_COOKIE_MAX_AGE_MS,
+      });
+    }
+
+    const roundScore = leaderboard.finishRound(req.round, player?.id, now());
+    const row = player ? leaderboard.entryFor(player.id, req.round.category_id) : null;
+    res.json({ roundScore, entry: row ? toEntry(row, player) : null });
+  });
+
+  app.use((_req, res) => fail(res, 404, 'Not found.'));
+
+  app.use((error, _req, res, _next) => {
+    const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 500 ? error.status : 500;
+    if (status === 500) console.error(error);
+    fail(res, status, STATUS_CODES[status]);
+  });
+
+  return app;
+}

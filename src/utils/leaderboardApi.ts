@@ -2,36 +2,49 @@ import { LeaderboardEntry } from '../components/LeaderboardTable';
 
 const API_BASE = '/api';
 
-export async function fetchLeaderboard(categoryName?: string, limit = 100): Promise<LeaderboardEntry[]> {
-  const params = new URLSearchParams();
-  if (categoryName) params.set('category', categoryName);
-  params.set('limit', String(limit));
-
-  const res = await fetch(`${API_BASE}/leaderboard?${params.toString()}`);
-  if (!res.ok) throw new Error(`Failed to load leaderboard (${res.status})`);
-  return res.json();
-}
-
-export async function fetchMyEntry(clientId: string, categoryName: string): Promise<LeaderboardEntry | null> {
-  const params = new URLSearchParams({ clientId, category: categoryName });
-  const res = await fetch(`${API_BASE}/leaderboard/mine?${params.toString()}`);
-  if (!res.ok) throw new Error(`Failed to load your score (${res.status})`);
-  return res.json();
-}
-
-export async function submitLeaderboardEntry(entry: {
-  clientId: string;
-  playerName: string;
-  categoryName: string;
+export interface AnswerResult {
+  points: number;
   score: number;
-  difficulty?: string;
-  schoolLevel?: string;
-}): Promise<LeaderboardEntry> {
-  const res = await fetch(`${API_BASE}/leaderboard`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(entry),
-  });
-  if (!res.ok) throw new Error(`Failed to submit score (${res.status})`);
+}
+
+export interface RoundResult {
+  roundScore: number;
+  entry: LeaderboardEntry | null;
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, init);
+  if (!res.ok) throw new Error(`Request to ${path} failed (${res.status})`);
   return res.json();
+}
+
+function post<T>(path: string, body?: unknown): Promise<T> {
+  return request<T>(path, {
+    method: 'POST',
+    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+}
+
+export function fetchLeaderboard(categoryId?: string, limit = 100): Promise<LeaderboardEntry[]> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (categoryId) params.set('category', categoryId);
+  return request(`/leaderboard?${params.toString()}`);
+}
+
+export function fetchMyEntry(categoryId: string): Promise<LeaderboardEntry | null> {
+  return request(`/leaderboard/mine?${new URLSearchParams({ category: categoryId }).toString()}`);
+}
+
+export async function startRound(categoryId: string): Promise<string> {
+  const { roundId } = await post<{ roundId: string }>('/rounds', { categoryId });
+  return roundId;
+}
+
+export function submitAnswer(roundId: string, questionId: string, correct: boolean): Promise<AnswerResult> {
+  return post(`/rounds/${encodeURIComponent(roundId)}/answers`, { questionId, correct });
+}
+
+export function finishRound(roundId: string): Promise<RoundResult> {
+  return post(`/rounds/${encodeURIComponent(roundId)}/finish`);
 }

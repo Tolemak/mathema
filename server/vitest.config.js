@@ -1,8 +1,13 @@
-const { defineConfig } = require('vitest/config');
+import { defineConfig } from 'vitest/config';
 
-module.exports = defineConfig({
+export default defineConfig({
   test: {
-    globals: true,
     environment: 'node',
+    coverage: {
+      provider: 'v8',
+      include: ['*.js'],
+      exclude: ['index.js', 'vitest.config.js', '*.test.js'],
+      thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
+    },
   },
 });

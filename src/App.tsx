@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Link, Route, Routes } from 'react-router-dom';
 import WelcomePage from './pages/WelcomePage';
 import PracticeAreaPage from './pages/PracticeAreaPage';
 import InteractiveModePage from './pages/InteractiveModePage';
@@ -29,7 +29,7 @@ const App: React.FC = () => {
                 <div className="page-container" style={{textAlign: 'center', padding: '60px'}}>
                   <h1 style={{fontSize: '3em', color: '#e67e22'}}>404</h1>
                   <p>Nie znaleziono strony lub zasobu.</p>
-                  <a href="/" className="nav-button-link primary">Powrót na stronę główną</a>
+                  <Link to="/" className="nav-button-link primary">Powrót na stronę główną</Link>
                 </div>
               } />
             </Routes>

@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-    { ignores: ['dist', 'node_modules', 'server/node_modules'] },
+    { ignores: ['dist', 'coverage', 'node_modules', 'server/node_modules', 'server/coverage'] },
     {
         extends: [js.configs.recommended, ...tseslint.configs.recommended],
         files: ['src/**/*.{ts,tsx}'],
@@ -26,23 +26,12 @@ export default tseslint.config(
         extends: [js.configs.recommended],
         files: ['server/**/*.js'],
         languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'commonjs',
+            ecmaVersion: 'latest',
+            sourceType: 'module',
             globals: globals.node,
         },
-    },
-    {
-        files: ['server/**/*.test.js'],
-        languageOptions: {
-            globals: {
-                ...globals.node,
-                describe: 'readonly',
-                it: 'readonly',
-                expect: 'readonly',
-                beforeEach: 'readonly',
-                afterEach: 'readonly',
-                vi: 'readonly',
-            },
+        rules: {
+            'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
         },
     },
 );
