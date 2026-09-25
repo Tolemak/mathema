@@ -24,12 +24,12 @@ Mathema is an interactive web application that helps users practice and improve 
 - **CSS**: Global styles and reusable classes.
 - **Node.js / Express**: Backend API powering the shared leaderboard (`server/`).
 - **better-sqlite3**: Persistent server-side score storage.
-- **Vitest / Supertest**: Backend API tests.
+- **Vitest / Supertest / Testing Library**: API and front-end tests.
 
 ## Setup
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/math-learning-app.git
+   git clone https://github.com/Tolemak/mathema.git
    ```
 2. Enter the project directory:
    ```bash
@@ -57,18 +57,23 @@ Mathema is an interactive web application that helps users practice and improve 
 - The **Progress Page** currently links to the leaderboard and is planned for future improvements.
 
 ## Backend: Leaderboard API
-The `server/` directory contains a lightweight API (Node.js/Express + SQLite) powering a **real, shared leaderboard** — scores are persisted and visible to all players, not just stored locally in the browser.
+The `server/` directory contains a lightweight API (Node.js/Express + SQLite) powering the **shared leaderboard**. The server computes the score itself: the browser only reports which question was answered and whether the answer was correct, and the server measures the answer time. The question bank (`server/questions.json`) and the scoring rules (`server/scoring.js`) are shared by the front-end and the API.
 
-- `GET /leaderboard?category=&limit=` — top scores (optionally filtered by category).
-- `GET /leaderboard/mine?clientId=&category=` — a player's own score in a given category (even outside the top results).
-- `POST /leaderboard` — save/update a score (numeric validation, per-IP throttling).
+- `POST /rounds` `{ categoryId }` — start a round, returns a `roundId`.
+- `POST /rounds/:roundId/answers` `{ questionId, correct }` — record an answer; points are computed server-side, each question counts once per round.
+- `POST /rounds/:roundId/finish` — finish the round; the player's best score in the category is kept. A guest gets a random name and an `HttpOnly` cookie that identifies them in later rounds.
+- `GET /leaderboard?category=&limit=` — top scores (optionally for one category); the caller's own entries have `mine: true`.
+- `GET /leaderboard/mine?category=` — the caller's own score in a category.
 
-Tests (`server/app.test.js`, Vitest + Supertest) cover validation, upsert, throttling and filtering:
+Rate limits are applied per client IP (the API trusts `X-Forwarded-For` only from the local proxy and Cloudflare; override with `TRUST_PROXY`).
+
+Tests (Vitest + Supertest, 80% coverage threshold):
 ```bash
 cd server
 npm install
-npm test
+npm run test:coverage
 ```
+Front-end tests: `npm test` in the project root.
 
 ## Next Steps: Backend Development
 Score persistence and the shared leaderboard (items 2 and 3 below) are already in place — see the section above. The remaining, larger phase of work is full user accounts.

@@ -24,12 +24,12 @@ Mathema to interaktywna aplikacja internetowa stworzona, aby pomóc użytkowniko
 - **CSS**: Do stylizacji aplikacji, z naciskiem na globalne style i klasy wielokrotnego użytku.
 - **Node.js / Express**: Backend API obsługujący wspólną tablicę liderów (`server/`).
 - **better-sqlite3**: Trwałe przechowywanie wyników po stronie serwera.
-- **Vitest / Supertest**: Testy API backendu.
+- **Vitest / Supertest / Testing Library**: Testy API i frontendu.
 
 ## Instrukcja Konfiguracji
 1. Sklonuj repozytorium:
    ```bash
-   git clone https://github.com/twojanazwauzytkownika/math-learning-app.git
+   git clone https://github.com/Tolemak/mathema.git
    ```
 2. Przejdź do katalogu projektu:
    ```bash
@@ -57,18 +57,23 @@ Mathema to interaktywna aplikacja internetowa stworzona, aby pomóc użytkowniko
 - **Strona Postępów** obecnie zawiera link do tablicy liderów i jest planowana do przyszłych ulepszeń.
 
 ## Backend: API Tablicy Liderów
-Katalog `server/` zawiera lekkie API (Node.js/Express + SQLite) obsługujące **prawdziwą, wspólną tablicę liderów** — wyniki są trwałe i widoczne dla wszystkich graczy, nie tylko lokalnie w przeglądarce.
+Katalog `server/` zawiera lekkie API (Node.js/Express + SQLite) obsługujące **wspólną tablicę liderów**. Serwer sam liczy punkty: przeglądarka zgłasza tylko, które zadanie rozwiązano i czy poprawnie, a czas odpowiedzi mierzy serwer. Bank zadań (`server/questions.json`) i zasady punktacji (`server/scoring.js`) są wspólne dla frontendu i API.
 
-- `GET /leaderboard?category=&limit=` — najlepsze wyniki (opcjonalnie filtrowane po kategorii).
-- `GET /leaderboard/mine?clientId=&category=` — własny wynik gracza w danej kategorii (nawet spoza top wyników).
-- `POST /leaderboard` — zapis/aktualizacja wyniku (walidacja liczb, throttling per IP).
+- `POST /rounds` `{ categoryId }` — rozpoczęcie rundy, zwraca `roundId`.
+- `POST /rounds/:roundId/answers` `{ questionId, correct }` — zapis odpowiedzi; punkty liczone po stronie serwera, każde zadanie raz na rundę.
+- `POST /rounds/:roundId/finish` — zakończenie rundy; zapisywany jest najlepszy wynik gracza w kategorii. Gość dostaje losową nazwę i ciasteczko `HttpOnly` identyfikujące go przy kolejnych rundach.
+- `GET /leaderboard?category=&limit=` — najlepsze wyniki (opcjonalnie dla jednej kategorii); własne wpisy mają `mine: true`.
+- `GET /leaderboard/mine?category=` — własny wynik w danej kategorii.
 
-Testy (`server/app.test.js`, Vitest + Supertest) pokrywają walidację, upsert, throttling i filtrowanie:
+Limity zapytań liczone są per IP klienta (API ufa nagłówkowi `X-Forwarded-For` tylko od lokalnego proxy i Cloudflare; zmienna `TRUST_PROXY` pozwala to nadpisać).
+
+Testy (Vitest + Supertest, próg pokrycia 80%):
 ```bash
 cd server
 npm install
-npm test
+npm run test:coverage
 ```
+Testy frontendu: `npm test` w katalogu głównym.
 
 ## Kolejne Kroki: Rozwój Backendu
 Trwałość wyników i wspólna tablica liderów (punkty 2 i 3 poniżej) są już zrealizowane — patrz sekcja wyżej. Pozostała, większa faza rozwoju to pełne konta użytkowników.
