@@ -5,7 +5,13 @@ services:
     build:
       context: .
     restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - ./data:/app/data
     ports:
-      - "40056:3000"
+      - "127.0.0.1:40056:3000"
