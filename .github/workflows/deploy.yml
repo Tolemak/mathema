@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'npm'
       - run: npm ci
 
@@ -31,20 +31,18 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
+      - name: Test front-end
+        run: npm test
+
       - name: Install API dependencies
         run: npm ci
         working-directory: server
 
       - name: Test API
-        run: npm test
+        run: npm run test:coverage
         working-directory: server
 
       - run: npm run build
-      - name: Copy .htaccess and error pages
-        run: |
-          cp .htaccess dist/
-          cp 404.html dist/
-          cp 403.html dist/
       - name: Push dist to build branch
         run: |
           git config --global user.name 'github-actions[bot]'
