@@ -1,0 +1,44 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --text: #555555;
+  --link: #007bff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e1e1e;
+    --text: #cccccc;
+    --link: #4da3ff;
+  }
+}
+
+body {
+  margin: 0;
+  padding: 60px 16px;
+  text-align: center;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h1 {
+  font-size: 3em;
+}
+
+.error-403 h1 {
+  color: #c0392b;
+}
+
+.error-404 h1 {
+  color: #e67e22;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
