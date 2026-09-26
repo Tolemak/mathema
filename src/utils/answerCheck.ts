@@ -97,3 +97,12 @@ export function isStringAnswerCorrect(userInput: string, correctAnswer: string):
   const tolerance = letterCount === 0 ? 0 : letterCount <= 8 ? 1 : 2;
   return distance <= tolerance;
 }
+
+export function isAnswerCorrect(correctAnswer: string | number, userInput: string): boolean {
+  if (typeof correctAnswer === 'number') {
+    // Accept Polish comma-decimals ("3,5") alongside periods; still an exact numeric match.
+    const value = parseFloat(userInput.trim().replace(',', '.'));
+    return !isNaN(value) && value === correctAnswer;
+  }
+  return isStringAnswerCorrect(userInput, String(correctAnswer));
+}

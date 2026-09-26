@@ -28,3 +28,11 @@ export interface Category {
 }
 
 export const categories = questionBank as Category[];
+
+export const schoolLevelNames: Record<SchoolLevel, string> = {
+    'podstawowa_4_6': 'Szkoła Podstawowa (klasy 4-6)',
+    'podstawowa_7_8': 'Szkoła Podstawowa (klasy 7-8)',
+    'liceum_podst': 'Liceum/Technikum (poziom podstawowy)',
+    'liceum_rozsz': 'Liceum/Technikum (poziom rozszerzony)',
+    'studia_tech_1rok': 'Studia Techniczne (1 rok)'
+};
