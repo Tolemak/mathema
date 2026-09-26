@@ -46,6 +46,16 @@ const FIELD_CSS = `
 :host([tone="error"]) .value { color: var(--tb-error, #ff5d5d); }
 `;
 
+// Constructed stylesheets instead of <style> tags, so the bar also works under a strict style-src CSP.
+function sheet(css) {
+  const result = new CSSStyleSheet();
+  result.replaceSync(css);
+  return result;
+}
+
+const BAR_SHEET = sheet(BAR_CSS);
+const FIELD_SHEET = sheet(FIELD_CSS);
+
 function rootTheme() {
   return document.documentElement.dataset.theme === "light" ? "light" : "dark";
 }
@@ -60,8 +70,8 @@ class TolemakBar extends HTMLElement {
   constructor() {
     super();
     const root = this.attachShadow({ mode: "open" });
-    root.innerHTML = `<style>${BAR_CSS}</style>
-      <a class="mark" part="mark">${MARK}</a>
+    root.adoptedStyleSheets = [BAR_SHEET];
+    root.innerHTML = `<a class="mark" part="mark">${MARK}</a>
       <span class="app" part="app"></span>
       <div class="fields"><slot></slot></div>
       <button type="button" class="lang" part="lang" hidden></button>
@@ -132,7 +142,8 @@ class TolemakField extends HTMLElement {
   constructor() {
     super();
     const root = this.attachShadow({ mode: "open" });
-    root.innerHTML = `<style>${FIELD_CSS}</style><span class="label" part="label"></span><span class="value" part="value"><slot></slot></span>`;
+    root.adoptedStyleSheets = [FIELD_SHEET];
+    root.innerHTML = `<span class="label" part="label"></span><span class="value" part="value"><slot></slot></span>`;
     this.labelEl = root.querySelector(".label");
   }
 
