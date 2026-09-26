@@ -1,5 +1,7 @@
 import React, { useEffect, useState, type ReactNode } from 'react';
-import { ThemeContext, type Theme } from './themeContextValue';
+import { radialViewTransition } from '../utils/viewTransition';
+
+type Theme = 'light' | 'dark';
 
 const THEME_KEY = 'theme';
 
@@ -10,6 +12,7 @@ function resolveInitialTheme(): Theme {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
+// The status bar owns the toggle button; this provider keeps the choice and animates the switch.
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(resolveInitialTheme);
 
@@ -18,7 +21,16 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  useEffect(() => {
+    const onTheme = (event: Event) => {
+      event.preventDefault();
+      const next = (event as CustomEvent<{ theme: Theme }>).detail.theme;
+      const bar = (event.target as HTMLElement).getBoundingClientRect();
+      radialViewTransition(bar.right - 30, bar.top + bar.height / 2, () => setTheme(next));
+    };
+    document.addEventListener('tolemak-theme', onTheme);
+    return () => document.removeEventListener('tolemak-theme', onTheme);
+  }, []);
 
-  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
+  return <>{children}</>;
 };

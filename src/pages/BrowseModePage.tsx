@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { categories, SchoolLevel, Difficulty } from '../data/mathProblems';
+import { categories, SchoolLevel, Difficulty, schoolLevelNames } from '../data/mathProblems';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { FaArrowCircleLeft } from 'react-icons/fa';
+import Topic from '../components/Topic';
+import { useBarFields } from '../contexts/useBarFields';
 
 const BrowseModePage: React.FC = () => {
     const { categoryId } = useParams<{ categoryId: string }>();
@@ -46,6 +47,11 @@ const BrowseModePage: React.FC = () => {
         });
     }, [selectedCategory, selectedLevel, selectedDifficulty]);
 
+    useBarFields([
+        { label: 'dział', value: selectedCategory?.name ?? '' },
+        { label: 'zadań', value: String(filteredQuestions.length) },
+    ]);
+
     const toggleAnswerVisibility = (questionId: string) => {
         setVisibleAnswers(prev => ({
             ...prev,
@@ -63,15 +69,8 @@ const BrowseModePage: React.FC = () => {
 
     return (
         <div className="page-container browse-mode-page">
-            <h1 className="browse-mode-title">Tryb Przeglądania</h1>
-            <h2 className="browse-mode-category-title">Kategoria: {selectedCategory.name}</h2>
-            
-            <div className="browse-mode-nav-back">
-                <Link to="/practice" className="nav-button-link secondary">
-                    <FaArrowCircleLeft className="nav-button-icon" />
-                    Wybierz inną kategorię
-                </Link>
-            </div>
+            <Topic>{selectedCategory.name}</Topic>
+            <p className="lead">Przeglądanie z odpowiedziami. <Link to="/practice?mode=browse">Wybierz inny dział</Link></p>
 
             <div className="filters-container">
                 <div className="filter-group">
@@ -84,7 +83,7 @@ const BrowseModePage: React.FC = () => {
                     >
                         <option value="all">Wszystkie poziomy</option>
                         {schoolLevels.map(level => (
-                            <option key={level} value={level}>{level.replace(/_/g, ' ')}</option>
+                            <option key={level} value={level}>{schoolLevelNames[level]}</option>
                         ))}
                     </select>
                 </div>
@@ -120,15 +119,15 @@ const BrowseModePage: React.FC = () => {
                 {filteredQuestions.length > 0 ? (
                     filteredQuestions.map((question, index) => (
                         <div key={question.id} className="question-item-browse">
-                            <h3>Zadanie {index + 1}:</h3>
-                            <p>{question.text}</p>
+                            <h3 className="task-number">Zadanie {index + 1}.</h3>
+                            <p className="task-text">{question.text}</p>
                             <button onClick={() => toggleAnswerVisibility(question.id)} className="button small toggle-answer-button">
                                 {visibleAnswers[question.id] ? 'Ukryj' : 'Pokaż'} odpowiedź
                             </button>
                             {visibleAnswers[question.id] && (
-                                <p className="answer-text"><strong>Odpowiedź:</strong> {question.answer}</p>
+                                <p className="answer-text"><span className="answer-label">Odp.</span> <span className="correction">{question.answer}</span></p>
                             )}
-                            <p className="question-meta"><small>Poziom: {question.schoolLevel.replace(/_/g, ' ')}, Trudność: {question.difficulty}</small></p>
+                            <p className="question-meta"><small>Poziom: {schoolLevelNames[question.schoolLevel]}, Trudność: {question.difficulty}</small></p>
                         </div>
                     ))
                 ) : (

@@ -2,13 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { categories, Category, Question as QuestionType } from '../data/mathProblems';
 import Question from '../components/Question';
 import Scoreboard from '../components/Scoreboard';
+import MarkedAnswer from '../components/MarkedAnswer';
+import Topic from '../components/Topic';
+import { useBarFields } from '../contexts/useBarFields';
 import LeaderboardTable, { LeaderboardEntry } from '../components/LeaderboardTable';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { fetchLeaderboard, fetchMyEntry, finishRound, startRound, submitAnswer } from '../utils/leaderboardApi';
 import { pointsFor } from '../../server/scoring.js';
-import { FaListOl } from 'react-icons/fa';
 
 type SaveState = 'pending' | 'saved' | 'empty' | 'failed';
+
+interface Worked {
+    question: QuestionType;
+    given: string;
+    correct: boolean;
+}
 
 const saveMessages: Record<SaveState, string> = {
     pending: 'Zapisywanie wyniku...',
@@ -44,10 +52,20 @@ const InteractiveSession: React.FC<InteractiveSessionProps> = ({ category, onRes
     const [bestEntry, setBestEntry] = useState<LeaderboardEntry | null>(null);
     const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
     const [saveState, setSaveState] = useState<SaveState>('pending');
+    const [worked, setWorked] = useState<Worked[]>([]);
     const round = useRef<Promise<string | null>>(Promise.resolve(null));
     const answerQueue = useRef<Promise<void>>(Promise.resolve());
 
     const currentQuestion = questions[index] ?? null;
+    const lastMiss = worked.map((w) => w.correct).lastIndexOf(false);
+    const streak = worked.length - lastMiss - 1;
+
+    useBarFields([
+        { label: 'dział', value: category.name },
+        { label: 'zadanie', value: `${Math.min(index + 1, questions.length)}/${questions.length}` },
+        { label: 'wynik', value: String(Math.round(score)), tone: 'accent' },
+        { label: 'seria', value: String(streak) },
+    ]);
 
     useEffect(() => {
         round.current = startRound(category.id).catch(() => null);
@@ -76,7 +94,7 @@ const InteractiveSession: React.FC<InteractiveSessionProps> = ({ category, onRes
             .catch(() => setSaveState('failed'));
     };
 
-    const handleAnswerSubmit = (isCorrect: boolean) => {
+    const handleAnswerSubmit = (isCorrect: boolean, given: string) => {
         if (!currentQuestion) return;
 
         const now = Date.now();
@@ -85,6 +103,7 @@ const InteractiveSession: React.FC<InteractiveSessionProps> = ({ category, onRes
 
         if (isCorrect) setScore(prev => prev + pointsFor(currentQuestion, timeTaken));
         setTotalSessionTime(prev => prev + timeTaken);
+        setWorked(prev => [...prev, { question: currentQuestion, given, correct: isCorrect }]);
         setIndex(prev => prev + 1);
         setQuestionStartTime(now);
         setCurrentTimePerQuestion(0);
@@ -106,23 +125,22 @@ const InteractiveSession: React.FC<InteractiveSessionProps> = ({ category, onRes
 
         return (
             <div className="page-container">
-                <h2 style={{ textAlign: 'center' }}>Wyniki dla kategorii: {category.name}</h2>
+                <Topic>{category.name}, wyniki</Topic>
                 <Scoreboard
                     score={Math.round(score)}
                     totalQuestions={questions.length}
                     bestScore={bestEntry ? Math.round(bestEntry.score) : undefined}
                 />
-                <p style={{ textAlign: 'center', marginTop: '10px' }}>
-                    Całkowity czas: {totalSessionTime.toFixed(1)} sekund
+                <p className="round-times">
+                    Całkowity czas: {totalSessionTime.toFixed(1)} sekund.
+                    Średni czas na zadanie: {(totalSessionTime / questions.length || 0).toFixed(1)} sekund.
                 </p>
-                <p style={{ textAlign: 'center' }}>
-                    Średni czas na zadanie: {(totalSessionTime / questions.length || 0).toFixed(1)} sekund
-                </p>
-                <p style={{ textAlign: 'center' }} role="status">{saveMessages[saveState]}</p>
-                <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                    <button onClick={onRestart} className="button" style={{ marginRight: '10px' }}>Spróbuj ponownie tę kategorię</button>
-                    <Link to="/practice" className="nav-button-link secondary">Wybierz inną kategorię</Link>
+                <p className="save-status" role="status">{saveMessages[saveState]}</p>
+                <div className="actions">
+                    <button onClick={onRestart} className="button">Spróbuj ponownie tę kategorię</button>
+                    <Link to="/practice?mode=interactive" className="button secondary">Wybierz inną kategorię</Link>
                 </div>
+                <WorkedList worked={worked} />
                 <LeaderboardTable entries={entries} title={`Najlepsze wyniki: ${category.name}`} />
             </div>
         );
@@ -130,7 +148,7 @@ const InteractiveSession: React.FC<InteractiveSessionProps> = ({ category, onRes
 
     return (
         <div className="page-container interactive-mode-page">
-            <h1>Tryb Interaktywny: {category.name}</h1>
+            <Topic>{category.name}</Topic>
 
             <Scoreboard
                 score={Math.round(score)}
@@ -141,15 +159,34 @@ const InteractiveSession: React.FC<InteractiveSessionProps> = ({ category, onRes
             />
             <Question
                 question={currentQuestion}
+                number={index + 1}
                 onSubmit={handleAnswerSubmit}
                 key={currentQuestion.id}
             />
-            <div className="interactive-mode-controls">
-                <Link to="/practice?mode=interactive" className="button secondary small nav-button-link">
-                    <FaListOl className="nav-button-icon" /> Wróć do wyboru kategorii
-                </Link>
+            <WorkedList worked={worked} />
+            <div className="actions">
+                <Link to="/practice?mode=interactive" className="button secondary">Wróć do wyboru kategorii</Link>
             </div>
         </div>
+    );
+};
+
+const WorkedList: React.FC<{ worked: Worked[] }> = ({ worked }) => {
+    if (worked.length === 0) return null;
+    return (
+        <section className="worked" aria-label="Poprawione zadania">
+            <ol>
+                {worked.map((item) => (
+                    <li key={item.question.id}>
+                        <p className="worked-text">{item.question.text}</p>
+                        <p className="worked-answer">
+                            <span className="answer-label">Odp.</span>
+                            <MarkedAnswer given={item.given} correct={item.correct} expected={item.question.answer} />
+                        </p>
+                    </li>
+                ))}
+            </ol>
+        </section>
     );
 };
 

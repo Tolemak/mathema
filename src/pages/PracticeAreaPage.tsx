@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { categories, Category, SchoolLevel } from '../data/mathProblems';
-import { FaArrowCircleLeft } from 'react-icons/fa';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { categories, Category, SchoolLevel, schoolLevelNames } from '../data/mathProblems';
+import Topic from '../components/Topic';
 
 const schoolLevelDisplayOrder: SchoolLevel[] = [
     'podstawowa_4_6',
@@ -10,14 +10,6 @@ const schoolLevelDisplayOrder: SchoolLevel[] = [
     'liceum_rozsz',
     'studia_tech_1rok'
 ];
-
-const schoolLevelFriendlyNames: Record<SchoolLevel, string> = {
-    'podstawowa_4_6': 'Szkoła Podstawowa (klasy 4-6)',
-    'podstawowa_7_8': 'Szkoła Podstawowa (klasy 7-8)',
-    'liceum_podst': 'Liceum/Technikum (poziom podstawowy)',
-    'liceum_rozsz': 'Liceum/Technikum (poziom rozszerzony)',
-    'studia_tech_1rok': 'Studia Techniczne (1 rok)'
-};
 
 const PracticeAreaPage: React.FC = () => {
     const navigate = useNavigate();
@@ -99,29 +91,33 @@ const PracticeAreaPage: React.FC = () => {
 
     return (
         <div className="page-container practice-area-page">
-            <h1>Obszar Ćwiczeń</h1>
-            <p className="practice-area-subtitle">Wybierz tryb, a następnie kategorię zadań.</p>
+            <Topic>wybór działu</Topic>
+            <p className="lead">Wybierz tryb, a potem dział.</p>
 
-            
             <div className="mode-selection-buttons">
-                <button 
-                    onClick={() => setSelectedMode('browse')} 
-                    className={`button ${selectedMode === 'browse' ? '' : 'button-secondary'}`}
+                <button
+                    type="button"
+                    onClick={() => setSelectedMode('browse')}
+                    aria-pressed={selectedMode === 'browse'}
+                    className="mode-button"
                 >
-                    Tryb Przeglądania
+                    Przeglądanie z odpowiedziami
                 </button>
-                <button 
-                    onClick={() => setSelectedMode('interactive')} 
-                    className={`button ${selectedMode === 'interactive' ? '' : 'button-secondary'}`}
+                <button
+                    type="button"
+                    onClick={() => setSelectedMode('interactive')}
+                    aria-pressed={selectedMode === 'interactive'}
+                    className="mode-button"
                 >
-                    Tryb Interaktywny
+                    Ćwiczenie na punkty
                 </button>
             </div>
 
             <div className="filter-container">
                 <input
                     type="text"
-                    placeholder="Filtruj kategorie..."
+                    placeholder="Szukaj działu"
+                    aria-label="Szukaj działu"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="filter-input"
@@ -129,32 +125,28 @@ const PracticeAreaPage: React.FC = () => {
             </div>
 
             {Object.keys(filteredGroupedCategories).length === 0 && searchTerm.trim() && (
-                <p className="no-results-message">Brak kategorii pasujących do wyszukiwania.</p>
+                <p className="no-results-message">Żaden dział nie pasuje do wyszukiwania.</p>
             )}
 
             {Object.keys(filteredGroupedCategories).map(level => (
                 <div key={level} className="school-level-group">
-                    <h2 onClick={() => toggleLevel(level)} className="school-level-title">
-                        {schoolLevelFriendlyNames[level as SchoolLevel] || level}
-                        <span className={`arrow-indicator ${expandedLevels[level] ? 'expanded' : ''}`}>{expandedLevels[level] ? ' ▼' : ' ►'}</span>
+                    <h2 className="school-level-title">
+                        <button type="button" onClick={() => toggleLevel(level)} aria-expanded={Boolean(expandedLevels[level])}>
+                            {schoolLevelNames[level as SchoolLevel] || level}
+                            <span className="arrow-indicator" aria-hidden="true">{expandedLevels[level] ? '−' : '+'}</span>
+                        </button>
                     </h2>
                     {expandedLevels[level] && (
                         <ul className="category-list-tree">
                             {filteredGroupedCategories[level].map(category => (
-                                <li key={category.id} onClick={() => handleCategoryClick(category.id)} className="category-list-item-tree">
-                                    {category.name}
+                                <li key={category.id} className="category-list-item-tree">
+                                    <button type="button" onClick={() => handleCategoryClick(category.id)}>{category.name}</button>
                                 </li>
                             ))}
                         </ul>
                     )}
                 </div>
             ))}
-            <div className="practice-area-nav-back">
-                <Link to="/" className="nav-button-link secondary">
-                    <FaArrowCircleLeft className="nav-button-icon" />
-                    Wróć do strony głównej
-                </Link>
-            </div>
         </div>
     );
 };

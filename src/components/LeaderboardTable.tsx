@@ -17,7 +17,7 @@ interface LeaderboardTableProps {
 
 const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries, title = "Tablica Wyników" }) => {
   if (!entries || entries.length === 0) {
-    return <p style={{ textAlign: 'center', margin: '20px 0' }}>Brak wyników do wyświetlenia.</p>;
+    return <p className="empty-text">Brak wyników do wyświetlenia.</p>;
   }
 
   const sortedEntries = [...entries].sort((a, b) => {
