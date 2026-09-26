@@ -13,7 +13,7 @@ const LABELS = {
 const BAR_CSS = `
 :host {
   position: fixed; inset: auto 0 0 0; z-index: 50;
-  display: flex; align-items: stretch; height: 30px; box-sizing: content-box;
+  display: flex; align-items: stretch; height: 30px; box-sizing: content-box; overflow: hidden;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   background: var(--tb-bg, #15171a); color: var(--tb-fg, #e4e7eb);
   border-top: 1px solid var(--tb-line, #2c3036);
@@ -98,7 +98,8 @@ class TolemakBar extends HTMLElement {
     this.render();
   }
 
-  get langs() {
+  // A method, not a getter: React 19 assigns attributes as properties when the element has one of that name.
+  langList() {
     return (this.getAttribute("langs") ?? "").split(",").map((l) => l.trim()).filter(Boolean);
   }
 
@@ -110,7 +111,7 @@ class TolemakBar extends HTMLElement {
     this.appEl.textContent = this.getAttribute("app") ?? "";
     this.themeEl.textContent = text[next];
     this.themeEl.setAttribute("aria-label", next === "light" ? text.toLight : text.toDark);
-    this.langEl.hidden = this.langs.length < 2;
+    this.langEl.hidden = this.langList().length < 2;
     this.langEl.textContent = pageLang().toUpperCase();
     this.langEl.setAttribute("aria-label", text.lang);
   }
@@ -130,7 +131,7 @@ class TolemakBar extends HTMLElement {
 
   // Language needs the app's own translations, so the bar only announces the choice.
   nextLang() {
-    const langs = this.langs;
+    const langs = this.langList();
     const lang = langs[(langs.indexOf(pageLang()) + 1) % langs.length];
     this.dispatchEvent(new CustomEvent("tolemak-lang", { detail: { lang }, bubbles: true }));
   }
