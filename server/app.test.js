@@ -100,6 +100,19 @@ describe('mathema leaderboard API', () => {
       expect(res.status).toBe(500);
       expect(res.body).toEqual({ error: 'Internal Server Error' });
     });
+
+    it('reports unexpected errors and not client errors', async () => {
+      const reportError = vi.fn();
+      const local = setup({ reportError });
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      await request(local.app).post('/rounds').send({ categoryId: 'a'.repeat(5000) });
+      expect(reportError).not.toHaveBeenCalled();
+      local.db.close();
+      await request(local.app).post('/rounds').send({ categoryId: 'algebra' });
+      spy.mockRestore();
+      expect(reportError).toHaveBeenCalledOnce();
+      expect(reportError.mock.calls[0][0]).toBeInstanceOf(Error);
+    });
   });
 
   describe('rounds', () => {

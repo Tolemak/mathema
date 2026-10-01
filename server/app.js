@@ -56,7 +56,7 @@ function toEntry(row, viewer) {
 
 const fail = (res, status, error) => res.status(status).json({ error });
 
-export function createApp({ db, now = Date.now, trustProxy = DEFAULT_TRUST_PROXY, limits = {} }) {
+export function createApp({ db, now = Date.now, trustProxy = DEFAULT_TRUST_PROXY, limits = {}, reportError = () => {} }) {
   const leaderboard = createLeaderboard(db);
   const limitsFor = (name) => ({ ...DEFAULT_LIMITS[name], ...limits[name] });
   const roundsLimiter = limiter(limitsFor('rounds'));
@@ -143,7 +143,10 @@ export function createApp({ db, now = Date.now, trustProxy = DEFAULT_TRUST_PROXY
 
   app.use((error, _req, res, _next) => {
     const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 500 ? error.status : 500;
-    if (status === 500) console.error(error);
+    if (status === 500) {
+      console.error(error);
+      reportError(error);
+    }
     fail(res, status, STATUS_CODES[status]);
   });
 
