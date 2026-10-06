@@ -28,8 +28,9 @@ ErrorDocument 404 /404.html
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Obsługa SPA (wszystko inne do index.html), brakujące pliki z /assets dostają 404
+  # Obsługa SPA (wszystko inne do index.html), brakujące pliki (ścieżki z rozszerzeniem) dostają 404
   RewriteCond %{REQUEST_URI} !^/assets/
+  RewriteCond %{REQUEST_URI} !\.[A-Za-z0-9]+$
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^(.*)$ /index.html [L]

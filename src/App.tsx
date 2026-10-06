@@ -6,9 +6,9 @@ import InteractiveModePage from './pages/InteractiveModePage';
 import BrowseModePage from './pages/BrowseModePage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProgressPage from './pages/ProgressPage';
+import NotFoundPage from './pages/NotFoundPage';
 import Footer from './components/Footer';
 import StatusBar from './components/StatusBar';
-import Topic from './components/Topic';
 import { ThemeProvider } from './contexts/ThemeProvider';
 import './styles/global.css';
 
@@ -37,13 +37,7 @@ const App: React.FC = () => {
               <Route path="/practice/browse/:categoryId" element={<BrowseModePage />} />
               <Route path="/leaderboard" element={<LeaderboardPage />} />
               <Route path="/progress" element={<ProgressPage />} />
-              <Route path="*" element={
-                <div className="page-container">
-                  <Topic>Strona 404</Topic>
-                  <p>Nie znaleziono strony lub zasobu.</p>
-                  <Link to="/" className="button">Powrót na stronę główną</Link>
-                </div>
-              } />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
           <Footer />
