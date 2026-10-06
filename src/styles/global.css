@@ -1,4 +1,3 @@
-/* Light theme is a squared school notebook, dark theme is a classroom blackboard. */
 :root {
   --paper: #fbfbf8;
   --wall: var(--paper);
@@ -88,7 +87,6 @@ h3 {
   text-wrap: balance;
 }
 
-/* The page body sits right of the notebook's red margin line; on the blackboard a wooden frame takes its place. */
 .app-container {
   max-width: 900px;
   min-height: 100vh;
@@ -173,8 +171,6 @@ h3 {
   font-size: 17px;
 }
 
-/* ---------- buttons ---------- */
-
 .button {
   display: inline-flex;
   align-items: center;
@@ -209,8 +205,6 @@ h3 {
   gap: 12px;
   margin: 8px 0;
 }
-
-/* ---------- a task and its answer ---------- */
 
 .question-container {
   display: grid;
@@ -374,8 +368,6 @@ s.given {
   color: var(--muted);
 }
 
-/* ---------- welcome ---------- */
-
 .next-steps {
   width: 100%;
   margin-top: 28px;
@@ -413,8 +405,6 @@ s.given {
   color: var(--muted);
   font-size: 15px;
 }
-
-/* ---------- choosing a category ---------- */
 
 .mode-selection-buttons {
   display: flex;
@@ -501,8 +491,6 @@ s.given {
   text-decoration: underline;
 }
 
-/* ---------- browsing ---------- */
-
 .filters-container {
   display: flex;
   flex-wrap: wrap;
@@ -550,8 +538,6 @@ s.given {
   color: var(--muted);
 }
 
-/* ---------- leaderboard ---------- */
-
 .leaderboard-container {
   width: 100%;
   margin-top: 24px;
@@ -589,7 +575,6 @@ s.given {
   font-variant-numeric: tabular-nums;
 }
 
-/* The viewer's own rows are marked the way a student marks a line: with a highlighter. */
 .leaderboard-table tr.highlighted-player td {
   background: linear-gradient(transparent 18%, var(--highlight) 18%, var(--highlight) 82%, transparent 82%);
   font-weight: 600;
@@ -603,8 +588,6 @@ s.given {
   font: italic 400 18px var(--serif);
   color: var(--muted);
 }
-
-/* ---------- footer ---------- */
 
 .main-footer {
   padding: 28px 0 72px;

@@ -1,12 +1,9 @@
-# Blokuj dostęp do katalogu .git i plików wrażliwych
 RedirectMatch 403 \.git
 RedirectMatch 403 \.env
 RedirectMatch 403 \.htaccess
 
-# Wyłącz listowanie katalogów
 Options -Indexes
 
-# Strony błędów
 ErrorDocument 403 /403.html
 ErrorDocument 404 /404.html
 
@@ -23,12 +20,10 @@ ErrorDocument 404 /404.html
   RewriteEngine On
   RewriteBase /
 
-  # Zezwól na wszystkie pliki statyczne (np. po buildzie Vite/React)
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Obsługa SPA (wszystko inne do index.html), brakujące pliki (ścieżki z rozszerzeniem) dostają 404
   RewriteCond %{REQUEST_URI} !^/assets/
   RewriteCond %{REQUEST_URI} !\.[A-Za-z0-9]+$
   RewriteCond %{REQUEST_FILENAME} !-f
