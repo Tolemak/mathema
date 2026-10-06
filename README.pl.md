@@ -4,6 +4,8 @@ Aplikacja do ćwiczenia matematyki: wybierasz kategorię, rozwiązujesz zadania 
 
 [English version](README.md)
 
+Interfejs jest dostępny po polsku (domyślnie) i angielsku. Przełącznik PL/EN w dolnym pasku zmienia język, wybór jest pamiętany w przeglądarce i ustawia `<html lang>`. Treści zadań pozostają po polsku; nazwy działów, poziomów, trudność i cały tekst interfejsu są tłumaczone.
+
 ```bash
 npm install
 npm run dev     # http://localhost:3000

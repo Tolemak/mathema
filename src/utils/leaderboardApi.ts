@@ -12,9 +12,19 @@ export interface RoundResult {
   entry: LeaderboardEntry | null;
 }
 
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(path: string, status: number) {
+    super(`Request to ${path} failed (${status})`);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, init);
-  if (!res.ok) throw new Error(`Request to ${path} failed (${res.status})`);
+  if (!res.ok) throw new ApiError(path, res.status);
   return res.json();
 }
 
