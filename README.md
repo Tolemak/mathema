@@ -4,6 +4,8 @@ Math practice app: pick a category, solve problems against the clock or just bro
 
 [Polska wersja](README.pl.md)
 
+The interface is available in Polish (default) and English. The PL/EN switch in the bottom bar changes the language, the choice is remembered in the browser and sets `<html lang>`. Problem statements stay in Polish; section names, levels, difficulty and all interface text are translated.
+
 ```bash
 npm install
 npm run dev     # http://localhost:3000

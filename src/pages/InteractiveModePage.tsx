@@ -5,9 +5,11 @@ import Scoreboard from '../components/Scoreboard';
 import MarkedAnswer from '../components/MarkedAnswer';
 import Topic from '../components/Topic';
 import { useBarFields } from '../contexts/useBarFields';
+import { useI18n } from '../i18n/useI18n';
 import LeaderboardTable, { LeaderboardEntry } from '../components/LeaderboardTable';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { fetchLeaderboard, fetchMyEntry, finishRound, startRound, submitAnswer } from '../utils/leaderboardApi';
+import type { MessageKey } from '../i18n/dictionary';
 import { pointsFor } from '../../server/scoring.js';
 
 type SaveState = 'pending' | 'saved' | 'empty' | 'failed';
@@ -18,12 +20,12 @@ interface Worked {
     correct: boolean;
 }
 
-const saveMessages: Record<SaveState, string> = {
-    pending: 'Zapisywanie wyniku...',
-    saved: 'Wynik zapisany na tablicy.',
-    empty: 'Brak punktów do zapisania.',
-    failed: 'Nie udało się zapisać wyniku.',
-};
+const saveKeys = {
+    pending: 'save.pending',
+    saved: 'save.saved',
+    empty: 'save.empty',
+    failed: 'save.failed',
+} as const satisfies Record<SaveState, MessageKey>;
 
 const shuffle = <T,>(items: T[]): T[] => {
     const copy = [...items];
@@ -43,6 +45,8 @@ interface InteractiveSessionProps {
 }
 
 const InteractiveSession: React.FC<InteractiveSessionProps> = ({ category, onRestart }) => {
+    const { t, categoryName, formatNumber } = useI18n();
+    const localName = categoryName(category.id, category.name);
     const [questions] = useState<QuestionType[]>(() => shuffle(category.questions));
     const [index, setIndex] = useState(0);
     const [score, setScore] = useState(0);
@@ -61,10 +65,10 @@ const InteractiveSession: React.FC<InteractiveSessionProps> = ({ category, onRes
     const streak = worked.length - lastMiss - 1;
 
     useBarFields([
-        { label: 'dział', value: category.name },
-        { label: 'zadanie', value: `${Math.min(index + 1, questions.length)}/${questions.length}` },
-        { label: 'wynik', value: String(Math.round(score)), tone: 'accent' },
-        { label: 'seria', value: String(streak) },
+        { label: t('bar.section'), value: localName },
+        { label: t('bar.task'), value: `${Math.min(index + 1, questions.length)}/${questions.length}` },
+        { label: t('bar.score'), value: String(Math.round(score)), tone: 'accent' },
+        { label: t('bar.streak'), value: String(streak) },
     ]);
 
     useEffect(() => {
@@ -125,30 +129,30 @@ const InteractiveSession: React.FC<InteractiveSessionProps> = ({ category, onRes
 
         return (
             <div className="page-container">
-                <Topic>{category.name}, wyniki</Topic>
+                <Topic>{t('interactive.results', { category: localName })}</Topic>
                 <Scoreboard
                     score={Math.round(score)}
                     totalQuestions={questions.length}
                     bestScore={bestEntry ? Math.round(bestEntry.score) : undefined}
                 />
                 <p className="round-times">
-                    Całkowity czas: {totalSessionTime.toFixed(1)} sekund.
-                    Średni czas na zadanie: {(totalSessionTime / questions.length || 0).toFixed(1)} sekund.
+                    {t('interactive.totalTime', { n: formatNumber(totalSessionTime, 1) })}{' '}
+                    {t('interactive.avgTime', { n: formatNumber(totalSessionTime / questions.length || 0, 1) })}
                 </p>
-                <p className="save-status" role="status">{saveMessages[saveState]}</p>
+                <p className="save-status" role="status">{t(saveKeys[saveState])}</p>
                 <div className="actions">
-                    <button onClick={onRestart} className="button">Spróbuj ponownie tę kategorię</button>
-                    <Link to="/practice?mode=interactive" className="button secondary">Wybierz inną kategorię</Link>
+                    <button onClick={onRestart} className="button">{t('interactive.retry')}</button>
+                    <Link to="/practice?mode=interactive" className="button secondary">{t('interactive.other')}</Link>
                 </div>
                 <WorkedList worked={worked} />
-                <LeaderboardTable entries={entries} title={`Najlepsze wyniki: ${category.name}`} />
+                <LeaderboardTable entries={entries} title={t('interactive.bestOf', { category: localName })} />
             </div>
         );
     }
 
     return (
         <div className="page-container interactive-mode-page">
-            <Topic>{category.name}</Topic>
+            <Topic>{localName}</Topic>
 
             <Scoreboard
                 score={Math.round(score)}
@@ -165,22 +169,23 @@ const InteractiveSession: React.FC<InteractiveSessionProps> = ({ category, onRes
             />
             <WorkedList worked={worked} />
             <div className="actions">
-                <Link to="/practice?mode=interactive" className="button secondary">Wróć do wyboru kategorii</Link>
+                <Link to="/practice?mode=interactive" className="button secondary">{t('interactive.back')}</Link>
             </div>
         </div>
     );
 };
 
 const WorkedList: React.FC<{ worked: Worked[] }> = ({ worked }) => {
+    const { t } = useI18n();
     if (worked.length === 0) return null;
     return (
-        <section className="worked" aria-label="Poprawione zadania">
+        <section className="worked" aria-label={t('interactive.worked')}>
             <ol>
                 {worked.map((item) => (
                     <li key={item.question.id}>
                         <p className="worked-text">{item.question.text}</p>
                         <p className="worked-answer">
-                            <span className="answer-label">Odp.</span>
+                            <span className="answer-label">{t('question.answerLabel')}</span>
                             <MarkedAnswer given={item.given} correct={item.correct} expected={item.question.answer} />
                         </p>
                     </li>
