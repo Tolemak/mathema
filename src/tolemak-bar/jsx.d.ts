@@ -2,7 +2,7 @@ import type { DetailedHTMLProps, HTMLAttributes } from "react";
 
 type Element<Props> = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement> & Props;
 
-declare global {
+declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
       "tolemak-bar": Element<{ app: string; home?: string; langs?: string; "theme-key"?: string; static?: boolean }>;
