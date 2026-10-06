@@ -9,6 +9,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    assetsInlineLimit: (file: string) => (/\.(woff2?|ttf|otf|eot)$/i.test(file) ? false : undefined),
   },
   resolve: {
     alias: {
