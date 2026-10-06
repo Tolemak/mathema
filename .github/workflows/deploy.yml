@@ -60,7 +60,8 @@ jobs:
           echo "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           echo "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" -o ServerAliveInterval=30 -o ServerAliveCountMax=60 "$DEPLOY_TARGET" "mathema"
+          echo "::add-mask::${DEPLOY_TARGET#*@}"
+          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" -o ServerAliveInterval=30 -o ServerAliveCountMax=60 -o ConnectTimeout=20 -o LogLevel=ERROR "$DEPLOY_TARGET" "mathema"
 
       - name: Deploy API to Mikrus
         env:
@@ -74,4 +75,5 @@ jobs:
           echo "$DEPLOY_SSH_KEY_API" > ~/.ssh/deploy_key_api
           chmod 600 ~/.ssh/deploy_key_api
           echo "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          ssh -i ~/.ssh/deploy_key_api -p "$DEPLOY_PORT" -o ServerAliveInterval=30 -o ServerAliveCountMax=60 "$DEPLOY_TARGET" "mathema-api"
+          echo "::add-mask::${DEPLOY_TARGET#*@}"
+          ssh -i ~/.ssh/deploy_key_api -p "$DEPLOY_PORT" -o ServerAliveInterval=30 -o ServerAliveCountMax=60 -o ConnectTimeout=20 -o LogLevel=ERROR "$DEPLOY_TARGET" "mathema-api"
