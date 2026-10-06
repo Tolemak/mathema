@@ -1,14 +1,7 @@
-
 const RELATIONAL_OPERATORS = ['∈', '=', '<', '>', '≤', '≥', '∀', '∃', '⊂', '⊆'];
 const ADJACENT_OPERATORS = ['^', '+', '-', '*', '/'];
 const FUNCTION_NAMES = ['sin', 'cos', 'tan', 'tg', 'ctg', 'cot', 'sqrt', 'log', 'ln', 'exp', 'arcsin', 'arccos', 'arctan'];
 
-/**
- * Many answers carry a trailing "(explanation)", e.g. "100 zł (108 / 1.08)", that is not meant to be typed,
- * so it is stripped. The parentheses are kept when they are the actual payload: the argument of a relation
- * ("x ∈ (-2, 2)"), of an operator ("n*x^(n-1)") or of a function call ("sin(x)", "6 * sqrt(2)"). The last two
- * are recognised by there being no whitespace before "(": a bare operator or a function name directly adjoining it.
- */
 function stripTrailingExplanation(answer: string): string {
   const s = answer.trimEnd();
   if (!s.endsWith(')')) return s.trim();
@@ -45,7 +38,6 @@ function normalize(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
-/** Numbers in order of appearance, with Polish comma-decimals normalized to periods. */
 function extractNumbers(s: string): string[] {
   return (s.match(/\d+([.,]\d+)?/g) || []).map((n) => n.replace(',', '.'));
 }
@@ -65,16 +57,6 @@ function levenshtein(a: string, b: string): number {
   return dp[a.length][b.length];
 }
 
-/**
- * Grades free-text answers leniently: whitespace, case, unit differences and small typos in the wording are
- * forgiven, but every digit must still match exactly. Forgiving about how "100 zł" is written, never about
- * whether the number is 100.
- *
- * Every number of the correct answer must appear in the input, in order and exactly; a missing, extra or
- * different number is always wrong. Once the numbers match (or there are none), the remaining non-numeric
- * shape is compared with a Levenshtein tolerance, which is where typos and omitted units are forgiven.
- * Typing only the number(s) and leaving out any unit or wording is always accepted, e.g. "100" for "100 zł".
- */
 export function isStringAnswerCorrect(userInput: string, correctAnswer: string): boolean {
   const correctCore = stripTrailingExplanation(correctAnswer);
   const normUser = normalize(userInput).replace(/\s+/g, '');
@@ -98,7 +80,6 @@ export function isStringAnswerCorrect(userInput: string, correctAnswer: string):
   return distance <= tolerance;
 }
 
-/** Numeric answers compare exactly and accept Polish comma-decimals ("3,5") alongside periods. */
 export function isAnswerCorrect(correctAnswer: string | number, userInput: string): boolean {
   if (typeof correctAnswer === 'number') {
     const value = parseFloat(userInput.trim().replace(',', '.'));

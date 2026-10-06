@@ -12,10 +12,6 @@ const schoolLevelDisplayOrder: SchoolLevel[] = [
     'studia_tech_1rok'
 ];
 
-/**
- * The mode lives in the URL but stays switchable by the buttons, so it is re-synced
- * on navigation during render rather than mirrored from an effect.
- */
 const PracticeAreaPage: React.FC = () => {
     const { t, categoryName, levelName } = useI18n();
     const navigate = useNavigate();
