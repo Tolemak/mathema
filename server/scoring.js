@@ -18,11 +18,6 @@ const BONUS_WINDOW_SECONDS = 30;
 const LATE_PENALTY_FACTOR = 0.5;
 const MIN_POINTS_SHARE = 0.2;
 
-/**
- * @param {{ difficulty: string, schoolLevel: string }} question
- * @param {number} seconds
- * @returns {number}
- */
 export function pointsFor(question, seconds) {
   const base = BASE_POINTS
     * DIFFICULTY_MULTIPLIERS[question.difficulty]
