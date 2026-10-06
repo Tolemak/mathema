@@ -3,10 +3,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as Sentry from '@sentry/node';
 import { createApp } from './app.js';
+import { initErrorReporting } from './errorReporting.js';
 import { openDatabase } from './db.js';
 import { resolveTrustProxy } from './trustProxy.js';
 
-if (process.env.SENTRY_DSN) Sentry.init({ dsn: process.env.SENTRY_DSN, sendDefaultPii: false });
+initErrorReporting(process.env);
 
 const dataDir = process.env.DATA_DIR || fileURLToPath(new URL('./data', import.meta.url));
 mkdirSync(dataDir, { recursive: true });
