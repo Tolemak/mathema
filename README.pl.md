@@ -13,6 +13,8 @@ npm test
 npm run lint
 ```
 
+`.htaccess` w `public/` serwuje `index.html` dla każdej ścieżki, która nie jest plikiem; nieistniejące ścieżki pod `/assets/` i z rozszerzeniem pliku zwracają prawdziwe 404 zamiast powłoki SPA, a plik blokuje też `.git`, `.env` i sam `.htaccess` oraz wyłącza listowanie katalogów.
+
 API (frontend woła je pod `/api`, na serwerze przez reverse proxy):
 
 ```bash

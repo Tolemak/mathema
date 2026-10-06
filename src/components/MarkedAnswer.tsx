@@ -7,7 +7,6 @@ interface MarkedAnswerProps {
   expected: string | number;
 }
 
-// An answer as a teacher marks it: circled with a tick when right, crossed out with the correct result when wrong.
 const MarkedAnswer: React.FC<MarkedAnswerProps> = ({ given, correct, expected }) => {
   const { t } = useI18n();
 

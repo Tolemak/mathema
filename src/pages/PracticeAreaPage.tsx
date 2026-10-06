@@ -12,6 +12,10 @@ const schoolLevelDisplayOrder: SchoolLevel[] = [
     'studia_tech_1rok'
 ];
 
+/**
+ * The mode lives in the URL but stays switchable by the buttons, so it is re-synced
+ * on navigation during render rather than mirrored from an effect.
+ */
 const PracticeAreaPage: React.FC = () => {
     const { t, categoryName, levelName } = useI18n();
     const navigate = useNavigate();
@@ -24,8 +28,6 @@ const PracticeAreaPage: React.FC = () => {
     const [selectedMode, setSelectedMode] = useState<'browse' | 'interactive'>(modeInUrl ?? 'browse');
     const [appliedSearch, setAppliedSearch] = useState(location.search);
 
-    // The mode lives in the URL but stays switchable by the buttons below, so it
-    // is re-synced on navigation rather than mirrored from an effect.
     if (appliedSearch !== location.search) {
         setAppliedSearch(location.search);
         if (modeInUrl !== null) {
