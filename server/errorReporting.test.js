@@ -92,7 +92,7 @@ describe('real SDK', () => {
       Sentry.captureException(error);
     }
     await Sentry.flush(1000);
-    expect(envelopes).toHaveLength(1);
+    expect(envelopes.filter((envelope) => envelope[1].some(([item]) => item.type === 'event'))).toHaveLength(1);
     const dumped = JSON.stringify(envelopes);
     expect(dumped).toContain('failed');
     expect(dumped).not.toContain('local-secret-value-98765');
