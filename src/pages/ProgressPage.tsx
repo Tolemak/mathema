@@ -1,15 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Topic from '../components/Topic';
+import { useI18n } from '../i18n/useI18n';
 
 const ProgressPage: React.FC = () => {
+    const { t } = useI18n();
     return (
         <div className="page-container">
-            <Topic>postępy</Topic>
+            <Topic>{t('progress.topic')}</Topic>
             <p className="lead">
-                Twoje najlepsze wyniki w każdym dziale są zapisane na tablicy wyników i podświetlone jak zakreślaczem.
+                {t('progress.lead')}
             </p>
-            <Link to="/leaderboard" className="button">Otwórz tablicę wyników</Link>
+            <Link to="/leaderboard" className="button">{t('progress.open')}</Link>
         </div>
     );
 };

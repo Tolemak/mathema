@@ -10,23 +10,26 @@ import NotFoundPage from './pages/NotFoundPage';
 import Footer from './components/Footer';
 import StatusBar from './components/StatusBar';
 import { ThemeProvider } from './contexts/ThemeProvider';
+import { I18nProvider } from './i18n/I18nProvider';
+import { useI18n } from './i18n/useI18n';
 import './styles/global.css';
 
 const today = new Date();
 
-const App: React.FC = () => {
+const Shell: React.FC = () => {
+  const { t, formatDate } = useI18n();
   return (
-    <ThemeProvider>
+    <>
       <Router>
         <div className="app-container">
           <header className="notebook-head">
             <Link to="/" className="wordmark">mathema</Link>
-            <nav className="notebook-nav" aria-label="Główne">
-              <NavLink to="/practice">Ćwiczenia</NavLink>
-              <NavLink to="/leaderboard">Tablica wyników</NavLink>
+            <nav className="notebook-nav" aria-label={t('nav.aria')}>
+              <NavLink to="/practice">{t('nav.practice')}</NavLink>
+              <NavLink to="/leaderboard">{t('nav.leaderboard')}</NavLink>
             </nav>
             <time className="notebook-date" dateTime={today.toISOString().slice(0, 10)}>
-              {today.toLocaleDateString('pl-PL')}
+              {formatDate(today)}
             </time>
           </header>
           <main className="content-wrap">
@@ -44,8 +47,16 @@ const App: React.FC = () => {
         </div>
         <StatusBar />
       </Router>
-    </ThemeProvider>
+    </>
   );
 };
+
+const App: React.FC = () => (
+  <ThemeProvider>
+    <I18nProvider>
+      <Shell />
+    </I18nProvider>
+  </ThemeProvider>
+);
 
 export default App;

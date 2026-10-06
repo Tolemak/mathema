@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Topic from '../components/Topic';
+import { useI18n } from '../i18n/useI18n';
 
 const NotFoundPage: React.FC = () => {
+  const { t } = useI18n();
   useEffect(() => {
     const meta = document.createElement('meta');
     meta.name = 'robots';
@@ -13,9 +15,9 @@ const NotFoundPage: React.FC = () => {
 
   return (
     <div className="page-container">
-      <Topic>Strona 404</Topic>
-      <p>Nie znaleziono strony lub zasobu.</p>
-      <Link to="/" className="button">Powrót na stronę główną</Link>
+      <Topic>{t('notFound.topic')}</Topic>
+      <p>{t('notFound.text')}</p>
+      <Link to="/" className="button">{t('notFound.home')}</Link>
     </div>
   );
 };

@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { categories, Category, SchoolLevel, schoolLevelNames } from '../data/mathProblems';
+import { categories, Category, SchoolLevel } from '../data/mathProblems';
 import Topic from '../components/Topic';
+import { useI18n } from '../i18n/useI18n';
 
 const schoolLevelDisplayOrder: SchoolLevel[] = [
     'podstawowa_4_6',
@@ -12,6 +13,7 @@ const schoolLevelDisplayOrder: SchoolLevel[] = [
 ];
 
 const PracticeAreaPage: React.FC = () => {
+    const { t, categoryName, levelName } = useI18n();
     const navigate = useNavigate();
     const location = useLocation(); 
     const [expandedLevels, setExpandedLevels] = useState<Record<string, boolean>>({});
@@ -79,20 +81,20 @@ const PracticeAreaPage: React.FC = () => {
         const filtered: Record<string, Category[]> = {};
         for (const level in groupedCategories) {
             const matchingCategories = groupedCategories[level].filter(category =>
-                category.name.toLowerCase().includes(lowerSearchTerm)
+                categoryName(category.id, category.name).toLowerCase().includes(lowerSearchTerm)
             );
             if (matchingCategories.length > 0) {
                 filtered[level] = matchingCategories;
             }
         }
         return filtered;
-    }, [groupedCategories, searchTerm]);
+    }, [groupedCategories, searchTerm, categoryName]);
 
 
     return (
         <div className="page-container practice-area-page">
-            <Topic>wybór działu</Topic>
-            <p className="lead">Wybierz tryb, a potem dział.</p>
+            <Topic>{t('practice.topic')}</Topic>
+            <p className="lead">{t('practice.lead')}</p>
 
             <div className="mode-selection-buttons">
                 <button
@@ -101,7 +103,7 @@ const PracticeAreaPage: React.FC = () => {
                     aria-pressed={selectedMode === 'browse'}
                     className="mode-button"
                 >
-                    Przeglądanie z odpowiedziami
+                    {t('practice.modeBrowse')}
                 </button>
                 <button
                     type="button"
@@ -109,15 +111,15 @@ const PracticeAreaPage: React.FC = () => {
                     aria-pressed={selectedMode === 'interactive'}
                     className="mode-button"
                 >
-                    Ćwiczenie na punkty
+                    {t('practice.modeInteractive')}
                 </button>
             </div>
 
             <div className="filter-container">
                 <input
                     type="text"
-                    placeholder="Szukaj działu"
-                    aria-label="Szukaj działu"
+                    placeholder={t('practice.search')}
+                    aria-label={t('practice.search')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="filter-input"
@@ -125,14 +127,14 @@ const PracticeAreaPage: React.FC = () => {
             </div>
 
             {Object.keys(filteredGroupedCategories).length === 0 && searchTerm.trim() && (
-                <p className="no-results-message">Żaden dział nie pasuje do wyszukiwania.</p>
+                <p className="no-results-message">{t('practice.noMatch')}</p>
             )}
 
             {Object.keys(filteredGroupedCategories).map(level => (
                 <div key={level} className="school-level-group">
                     <h2 className="school-level-title">
                         <button type="button" onClick={() => toggleLevel(level)} aria-expanded={Boolean(expandedLevels[level])}>
-                            {schoolLevelNames[level as SchoolLevel] || level}
+                            {levelName(level)}
                             <span className="arrow-indicator" aria-hidden="true">{expandedLevels[level] ? '−' : '+'}</span>
                         </button>
                     </h2>
@@ -140,7 +142,7 @@ const PracticeAreaPage: React.FC = () => {
                         <ul className="category-list-tree">
                             {filteredGroupedCategories[level].map(category => (
                                 <li key={category.id} className="category-list-item-tree">
-                                    <button type="button" onClick={() => handleCategoryClick(category.id)}>{category.name}</button>
+                                    <button type="button" onClick={() => handleCategoryClick(category.id)}>{categoryName(category.id, category.name)}</button>
                                 </li>
                             ))}
                         </ul>
