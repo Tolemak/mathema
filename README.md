@@ -13,6 +13,8 @@ npm test
 npm run lint
 ```
 
+The `.htaccess` in `public/` serves `index.html` for every route that is not a file; paths under `/assets/` and paths with a file extension that do not exist return a real 404 instead of the SPA shell, and it also blocks `.git`, `.env` and `.htaccess` themselves and disables directory listings.
+
 API (the frontend calls it under `/api`, on the server via a reverse proxy):
 
 ```bash

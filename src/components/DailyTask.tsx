@@ -15,7 +15,6 @@ interface Attempt {
   correct: boolean;
 }
 
-// One random task to try straight away, checked on the spot; points are only counted in the interactive mode.
 const DailyTask: React.FC = () => {
   const { t, categoryName, levelName } = useI18n();
   const [task, setTask] = useState(pickTask);

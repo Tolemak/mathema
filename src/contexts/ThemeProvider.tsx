@@ -12,7 +12,6 @@ function resolveInitialTheme(): Theme {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-// The status bar owns the toggle button; this provider keeps the choice and animates the switch.
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(resolveInitialTheme);
 
