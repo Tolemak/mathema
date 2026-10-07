@@ -10,7 +10,7 @@ ENV NODE_ENV=production HOST=0.0.0.0 PORT=3000 DATA_DIR=/app/data
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json questions.json *.js ./
-RUN mkdir data && chown node:node data
+RUN chmod -R a+rX /app && mkdir data && chown node:node data
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \

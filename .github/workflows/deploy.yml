@@ -30,47 +30,98 @@ jobs:
       working-directory: server
       test-command: npm run test:coverage
 
-  deploy:
+  static:
     needs: [ci, ci-api]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    env:
+      IMAGE: ghcr.io/tolemak/mathema-static
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
           path: dist
 
-      - name: Push dist to build branch
-        uses: Tolemak/.github/actions/push-build-branch@v1
+      - name: Package the site
+        run: |
+          test -f dist/index.html
+          docker build --provenance=false -f - \
+            --label org.opencontainers.image.source=https://github.com/${{ github.repository }} \
+            --label org.opencontainers.image.revision=${{ github.sha }} \
+            -t "$IMAGE:${{ github.sha }}" -t "$IMAGE:latest" . <<'EOF'
+          FROM scratch
+          COPY dist /site
+          EOF
+
+      - name: Smoke test the package
+        run: |
+          cid=$(docker create "$IMAGE:${{ github.sha }}" /none)
+          docker cp "$cid:/site" packaged
+          docker rm "$cid"
+          diff -r dist packaged
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Push
+        id: push
+        run: |
+          docker push --quiet "$IMAGE:${{ github.sha }}"
+          docker push --quiet "$IMAGE:latest"
+          echo "digest=$(docker image inspect --format '{{index .RepoDigests 0}}' "$IMAGE:${{ github.sha }}" | cut -d@ -f2)" >> "$GITHUB_OUTPUT"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v4
         with:
-          directory: dist
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
 
-      - name: Deploy to Mikrus
-        env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_TARGET: ${{ secrets.DEPLOY_TARGET }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
-          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+  image:
+    needs: [ci, ci-api]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    env:
+      IMAGE: ghcr.io/tolemak/mathema-api
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the API image
+        run: >
+          docker build --provenance=false
+          --label org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          --label org.opencontainers.image.revision=${{ github.sha }}
+          -t "$IMAGE:${{ github.sha }}" -t "$IMAGE:latest" server
+      - name: Smoke test the image
         run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          echo "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          echo "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_TARGET" "mathema"
-
-      - name: Deploy API to Mikrus
-        env:
-          DEPLOY_SSH_KEY_API: ${{ secrets.DEPLOY_SSH_KEY_API }}
-          DEPLOY_TARGET: ${{ secrets.DEPLOY_TARGET }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
-          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          docker run --rm --network=none --read-only --cap-drop=ALL --security-opt=no-new-privileges:true \
+            --user 12345:12345 "$IMAGE:${{ github.sha }}" \
+            sh -c 'test -r /app/package.json && test ! -w /app/package.json && test -d /app/node_modules/express'
+          docker run -d --name api-smoke -p 127.0.0.1:3000:3000 --read-only --tmpfs /app/data:uid=12345,gid=12345 \
+            --cap-drop=ALL --security-opt=no-new-privileges:true --user 12345:12345 "$IMAGE:${{ github.sha }}"
+          for _ in $(seq 1 20); do curl -fsS http://127.0.0.1:3000/health && break; sleep 1; done
+          curl -fsS http://127.0.0.1:3000/health
+          docker rm -f api-smoke
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Push
+        id: push
         run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          echo "$DEPLOY_SSH_KEY_API" > ~/.ssh/deploy_key_api
-          chmod 600 ~/.ssh/deploy_key_api
-          echo "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          ssh -i ~/.ssh/deploy_key_api -p "$DEPLOY_PORT" "$DEPLOY_TARGET" "mathema-api"
+          docker push --quiet "$IMAGE:${{ github.sha }}"
+          docker push --quiet "$IMAGE:latest"
+          echo "digest=$(docker image inspect --format '{{index .RepoDigests 0}}' "$IMAGE:${{ github.sha }}" | cut -d@ -f2)" >> "$GITHUB_OUTPUT"
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
