@@ -32,3 +32,5 @@ npm start                 # port 3000 albo PORT
 npm run test:coverage
 docker compose up -d      # 127.0.0.1:40056
 ```
+
+Po zielonych testach na `main` CI publikuje zbudowany frontend jako `ghcr.io/tolemak/mathema-static:<sha commita>` (obraz `FROM scratch` z plikami w `/site`) i obraz API `ghcr.io/tolemak/mathema-api:<sha commita>` (oba też `:latest`), każdy z podpisanym poświadczeniem pochodzenia builda. Serwer sam pobiera i weryfikuje oba; CI nigdy się z nim nie łączy.
