@@ -9,6 +9,9 @@ services:
       - path: .env
         required: false
     init: true
+    mem_limit: 224m
+    cpus: 0.5
+    pids_limit: 64
     read_only: true
     cap_drop:
       - ALL
