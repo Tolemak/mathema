@@ -5,9 +5,25 @@ type Theme = 'light' | 'dark';
 
 const THEME_KEY = 'theme';
 
+function readStored(): string | null {
+  try {
+    return localStorage.getItem(THEME_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeStored(theme: Theme): void {
+  try {
+    localStorage.setItem(THEME_KEY, theme);
+  } catch {
+    return;
+  }
+}
+
 function resolveInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'light';
-  const stored = localStorage.getItem(THEME_KEY);
+  const stored = readStored();
   if (stored === 'light' || stored === 'dark') return stored;
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
@@ -17,7 +33,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem(THEME_KEY, theme);
+    writeStored(theme);
   }, [theme]);
 
   useEffect(() => {

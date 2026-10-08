@@ -7,6 +7,7 @@ import BrowseModePage from './pages/BrowseModePage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProgressPage from './pages/ProgressPage';
 import NotFoundPage from './pages/NotFoundPage';
+import CanonicalLink from './components/CanonicalLink';
 import Footer from './components/Footer';
 import StatusBar from './components/StatusBar';
 import { ThemeProvider } from './contexts/ThemeProvider';
@@ -21,6 +22,7 @@ const Shell: React.FC = () => {
   return (
     <>
       <Router>
+        <CanonicalLink />
         <div className="app-container">
           <header className="notebook-head">
             <Link to="/" className="wordmark">mathema</Link>
