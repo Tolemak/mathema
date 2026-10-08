@@ -10,6 +10,11 @@ describe('scrubEvent', () => {
     message: 'plain',
     user: { id: '7', ip_address: '198.51.100.7' },
     breadcrumbs: [{ message: 'fetch' }],
+    server_name: 'container-1234',
+    contexts: { os: { name: 'Linux' }, device: { arch: 'x64' } },
+    tags: { a: 'b' },
+    extra: { c: 'd' },
+    transaction: 'POST /rounds/abc123/answers',
     request: {
       url: 'http://mathema.example/api/scores?name=abc#frag',
       method: 'POST',
@@ -31,6 +36,19 @@ describe('scrubEvent', () => {
     expect(out.request).toEqual({ url: 'http://mathema.example/api/scores', method: 'POST' });
     expect(out.exception.values[0].stacktrace.frames).toEqual([{ function: 'f', lineno: 3 }]);
     expect(out.event_id).toBe(event.event_id);
+  });
+
+  it('drops host, contexts, tags and extra and masks the round id', () => {
+    const out = scrubEvent({
+      ...event,
+      request: { ...event.request, url: 'http://mathema.example/rounds/tok3n-XYZ/answers?x=1' },
+    });
+    expect(out.server_name).toBeUndefined();
+    expect(out.contexts).toBeUndefined();
+    expect(out.tags).toBeUndefined();
+    expect(out.extra).toBeUndefined();
+    expect(out.request.url).toBe('http://mathema.example/rounds/:id/answers');
+    expect(out.transaction).toBe('POST /rounds/:id/answers');
   });
 
   it('does not mutate its input', () => {
@@ -60,6 +78,8 @@ describe('initErrorReporting', () => {
     expect(options.dataCollection).toEqual(dataCollection);
     expect(options.dataCollection.stackFrameVariables).toBe(false);
     expect(options.dataCollection.userInfo).toBe(false);
+    expect(options.dataCollection.graphQL).toEqual({ document: false, variables: false });
+    expect(options.dataCollection.genAI).toEqual({ inputs: false, outputs: false });
     expect(options).not.toHaveProperty('sendDefaultPii');
     expect(options).not.toHaveProperty('includeLocalVariables');
     expect(options.beforeSend).toBe(scrubEvent);
@@ -87,7 +107,7 @@ describe('real SDK', () => {
     } catch (error) {
       Sentry.getCurrentScope().setUser({ id: '7', email: 'person@example.com' });
       Sentry.getCurrentScope().setSDKProcessingMetadata({
-        normalizedRequest: { url: 'http://mathema.example/x?name=abc', headers: { cookie: 'sid=1' }, data: 'name=abc' },
+        normalizedRequest: { url: 'http://mathema.example/rounds/roundtoken77/answers?name=abc', headers: { cookie: 'sid=1' }, data: 'name=abc' },
       });
       Sentry.captureException(error);
     }
@@ -104,5 +124,8 @@ describe('real SDK', () => {
     expect(dumped).not.toContain('"breadcrumbs"');
     expect(dumped).not.toContain('sid=1');
     expect(dumped).not.toContain('name=abc');
+    expect(dumped).not.toContain('roundtoken77');
+    expect(dumped).not.toContain('"server_name"');
+    expect(dumped).not.toContain('"contexts"');
   });
 });
