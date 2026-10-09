@@ -95,7 +95,7 @@ jobs:
     env:
       IMAGE: ghcr.io/tolemak/mathema-api
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build the API image
         run: >
           docker build --provenance=false
