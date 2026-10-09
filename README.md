@@ -1,6 +1,6 @@
 # Mathema
 
-[![CI](https://github.com/Tolemak/mathema/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/Tolemak/mathema/actions/workflows/deploy.yml)
+[![status: done](https://img.shields.io/badge/status-done-blue)](https://github.com/Tolemak/mathema)
 
 Math practice app: pick a category, solve problems against the clock or just browse them. React + TypeScript + Vite. The shared leaderboard runs on a small Express + SQLite API in `server/`, which scores rounds itself instead of trusting the browser. [mathema.tolemak.pl](https://mathema.tolemak.pl/)
 

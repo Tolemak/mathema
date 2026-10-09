@@ -1,6 +1,6 @@
 # Mathema
 
-[![CI](https://github.com/Tolemak/mathema/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/Tolemak/mathema/actions/workflows/deploy.yml)
+[![status: done](https://img.shields.io/badge/status-done-blue)](https://github.com/Tolemak/mathema)
 
 Aplikacja do ćwiczenia matematyki: wybierasz kategorię, rozwiązujesz zadania na czas albo po prostu je przeglądasz. React + TypeScript + Vite. Wspólny ranking działa na małym API w Express + SQLite w `server/`, które samo liczy punkty rundy zamiast ufać przeglądarce. [mathema.tolemak.pl](https://mathema.tolemak.pl/)
 
