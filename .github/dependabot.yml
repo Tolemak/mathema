@@ -9,6 +9,9 @@ updates:
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
     groups:
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
       npm-minor-patch:
         update-types: ["minor", "patch"]
       npm-major:
@@ -22,6 +25,9 @@ updates:
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
     groups:
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
       npm-minor-patch:
         update-types: ["minor", "patch"]
       npm-major:
@@ -35,6 +41,9 @@ updates:
       - dependency-name: "node"
         update-types: ["version-update:semver-major"]
     groups:
+      docker-security:
+        applies-to: security-updates
+        patterns: ["*"]
       docker-minor-patch:
         update-types: ["minor", "patch"]
       docker-major:
@@ -45,6 +54,9 @@ updates:
       interval: "monthly"
     open-pull-requests-limit: 5
     groups:
+      actions-security:
+        applies-to: security-updates
+        patterns: ["*"]
       actions-minor-patch:
         update-types: ["minor", "patch"]
       actions-major:
