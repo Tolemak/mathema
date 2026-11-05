@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: Tolemak/.github/.github/workflows/node-ci.yml@v1
+    uses: Tolemak/.github/.github/workflows/node-ci.yml@c2cb527de1abeb7ad38907fb52dfb1c9cedbbcec # v1.4.0
     with:
       node-version: "24"
       artifact-name: dist
@@ -25,7 +25,7 @@ jobs:
       test-command: npm run test:coverage
 
   ci-api:
-    uses: Tolemak/.github/.github/workflows/node-ci.yml@v1
+    uses: Tolemak/.github/.github/workflows/node-ci.yml@c2cb527de1abeb7ad38907fb52dfb1c9cedbbcec # v1.4.0
     with:
       node-version: "24"
       working-directory: server
@@ -77,7 +77,7 @@ jobs:
           echo "digest=$(docker image inspect --format '{{index .RepoDigests 0}}' "$IMAGE:${{ github.sha }}" | cut -d@ -f2)" >> "$GITHUB_OUTPUT"
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.push.outputs.digest }}
@@ -95,7 +95,7 @@ jobs:
     env:
       IMAGE: ghcr.io/tolemak/mathema-api
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build the API image
         run: >
           docker build --provenance=false
@@ -121,7 +121,7 @@ jobs:
           docker push --quiet "$IMAGE:latest"
           echo "digest=$(docker image inspect --format '{{index .RepoDigests 0}}' "$IMAGE:${{ github.sha }}" | cut -d@ -f2)" >> "$GITHUB_OUTPUT"
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.push.outputs.digest }}
