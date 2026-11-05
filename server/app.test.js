@@ -2,9 +2,12 @@ import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp, PLAYER_COOKIE } from './app.js';
 import { openDatabase } from './db.js';
+import { categories } from './questionBank.js';
 import { ROUND_TTL_MS } from './leaderboard.js';
 
 const START = Date.UTC(2026, 0, 1);
+const RIGHT = Object.fromEntries(categories.flatMap((c) => c.questions.map((q) => [q.id, String(q.answer)])));
+const WRONG = 'definitely not the answer';
 
 function setup(options = {}) {
   let clock = START;
@@ -35,8 +38,8 @@ describe('mathema leaderboard API', () => {
     return res.body.roundId;
   };
 
-  const answer = (roundId, questionId, correct = true) =>
-    request(ctx.app).post(`/rounds/${roundId}/answers`).send({ questionId, correct });
+  const answer = (roundId, questionId, given = RIGHT[questionId] ?? '1', extra = {}) =>
+    request(ctx.app).post(`/rounds/${roundId}/answers`).send({ questionId, answer: given, ...extra });
 
   const finish = (roundId, cookie) => {
     const req = request(ctx.app).post(`/rounds/${roundId}/finish`);
@@ -136,14 +139,14 @@ describe('mathema leaderboard API', () => {
       const roundId = await startRound();
       const res = await request(ctx.app)
         .post(`/rounds/${roundId}/answers`)
-        .send({ questionId: 'alg1', correct: true, points: 5000, score: 5000 });
+        .send({ questionId: 'alg1', answer: '3', points: 5000, score: 5000 });
       expect(res.body.score).toBe(24);
     });
 
     it('gives no points for a wrong answer but restarts the timer', async () => {
       const roundId = await startRound();
       ctx.advance(20_000);
-      expect((await answer(roundId, 'alg1', false)).body).toEqual({ points: 0, score: 0 });
+      expect((await answer(roundId, 'alg1', WRONG)).body).toEqual({ points: 0, score: 0 });
       expect((await answer(roundId, 'alg3')).body).toEqual({ points: 24, score: 24 });
     });
 
@@ -151,8 +154,37 @@ describe('mathema leaderboard API', () => {
       const roundId = await startRound();
       expect((await answer(roundId, 'geo1')).status).toBe(400);
       expect((await answer(roundId, 'missing')).status).toBe(400);
-      expect((await request(ctx.app).post(`/rounds/${roundId}/answers`).send({ questionId: 'alg1', correct: 'yes' })).status).toBe(400);
-      expect((await request(ctx.app).post(`/rounds/${roundId}/answers`).send({ questionId: ['alg1'], correct: true })).status).toBe(400);
+      expect((await answer(roundId, ['alg1'])).status).toBe(400);
+      const post = (body) => request(ctx.app).post(`/rounds/${roundId}/answers`).send(body);
+      expect((await post({ questionId: 'alg1' })).status).toBe(400);
+      expect((await post({ questionId: 'alg1', correct: true })).status).toBe(400);
+      expect((await post({ questionId: 'alg1', answer: 3 })).status).toBe(400);
+      expect((await post({ questionId: 'alg1', answer: '   ' })).status).toBe(400);
+      expect((await post({ questionId: 'alg1', answer: ['3'] })).status).toBe(400);
+      expect((await post({ questionId: 'alg1', answer: '9'.repeat(201) })).status).toBe(400);
+      expect((await post()).status).toBe(400);
+    });
+
+    it('ignores a forged correct flag and judges the submitted answer itself', async () => {
+      const roundId = await startRound();
+      const forged = await answer(roundId, 'alg1', WRONG, { correct: true });
+      expect(forged.status).toBe(200);
+      expect(forged.body).toEqual({ points: 0, score: 0 });
+
+      const honest = await answer(roundId, 'alg3', 'x > 3', { correct: false });
+      expect(honest.body).toEqual({ points: 24, score: 24 });
+
+      const numeric = await answer(roundId, 'alg5', ' 1 ');
+      expect(numeric.body.points).toBeGreaterThan(0);
+    });
+
+    it('leaves a forged round off the leaderboard', async () => {
+      const roundId = await startRound();
+      await answer(roundId, 'alg1', WRONG, { correct: true });
+      await answer(roundId, 'alg3', WRONG, { correct: true });
+      const res = await finish(roundId);
+      expect(res.body).toEqual({ roundScore: 0, entry: null });
+      expect(playerCookie(res)).toBeNull();
     });
 
     it('counts each question once per round', async () => {
@@ -197,7 +229,7 @@ describe('mathema leaderboard API', () => {
 
     it('does not create a player for an empty round', async () => {
       const roundId = await startRound();
-      await answer(roundId, 'alg1', false);
+      await answer(roundId, 'alg1', WRONG);
       const res = await finish(roundId);
 
       expect(res.body).toEqual({ roundScore: 0, entry: null });

@@ -89,9 +89,9 @@ describe('InteractiveModePage', () => {
         answerCurrentQuestion();
 
         expect(await screen.findByText('Wynik zapisany na tablicy.')).toBeTruthy();
-        expect(vi.mocked(api.submitAnswer).mock.calls.map(([round, , correct]) => [round, correct])).toEqual([
-            ['round-1', true],
-            ['round-1', true],
+        expect(vi.mocked(api.submitAnswer).mock.calls.slice().sort()).toEqual([
+            ['round-1', 'q1', '4'],
+            ['round-1', 'q2', '6'],
         ]);
         expect(api.finishRound).toHaveBeenCalledWith('round-1');
         expect(document.querySelector('.highlighted-player')?.textContent).toContain('Gość ABCDE');

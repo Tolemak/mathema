@@ -31,7 +31,7 @@ describe('leaderboardApi', () => {
         expect(await startRound('algebra')).toBe('r1');
 
         respond({ points: 24, score: 24 });
-        await submitAnswer('r1', 'alg1', true);
+        await submitAnswer('r1', 'alg1', '3');
 
         respond({ roundScore: 24, entry: null });
         await finishRound('r1');
@@ -39,7 +39,7 @@ describe('leaderboardApi', () => {
         const calls = fetchMock.mock.calls.map(([url, init]) => [url, init.method, init.body]);
         expect(calls).toEqual([
             ['/api/rounds', 'POST', JSON.stringify({ categoryId: 'algebra' })],
-            ['/api/rounds/r1/answers', 'POST', JSON.stringify({ questionId: 'alg1', correct: true })],
+            ['/api/rounds/r1/answers', 'POST', JSON.stringify({ questionId: 'alg1', answer: '3' })],
             ['/api/rounds/r1/finish', 'POST', undefined],
         ]);
     });

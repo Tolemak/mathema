@@ -22,6 +22,7 @@ jobs:
       node-version: "24"
       artifact-name: dist
       artifact-include-hidden-files: true
+      test-command: npm run test:coverage
 
   ci-api:
     uses: Tolemak/.github/.github/workflows/node-ci.yml@v1

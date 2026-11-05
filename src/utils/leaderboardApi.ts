@@ -51,8 +51,8 @@ export async function startRound(categoryId: string): Promise<string> {
   return roundId;
 }
 
-export function submitAnswer(roundId: string, questionId: string, correct: boolean): Promise<AnswerResult> {
-  return post(`/rounds/${encodeURIComponent(roundId)}/answers`, { questionId, correct });
+export function submitAnswer(roundId: string, questionId: string, answer: string): Promise<AnswerResult> {
+  return post(`/rounds/${encodeURIComponent(roundId)}/answers`, { questionId, answer });
 }
 
 export function finishRound(roundId: string): Promise<RoundResult> {
