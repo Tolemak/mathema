@@ -3,6 +3,7 @@ import express from 'express';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import { createLeaderboard } from './leaderboard.js';
+import { isAnswerCorrect } from './answerCheck.js';
 import { findCategory } from './questionBank.js';
 import { DEFAULT_TRUST_PROXY } from './trustProxy.js';
 
@@ -12,6 +13,7 @@ const PLAYER_COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
 const ROUND_ID_PATTERN = /^[A-Za-z0-9_-]{22}$/;
 const PLAYER_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 const MAX_LIMIT = 100;
+const MAX_ANSWER_LENGTH = 200;
 
 const DEFAULT_LIMITS = {
   rounds: { windowMs: 10 * 60 * 1000, limit: 300 },
@@ -109,13 +111,14 @@ export function createApp({ db, now = Date.now, trustProxy = DEFAULT_TRUST_PROXY
   });
 
   app.post('/rounds/:roundId/answers', answersLimiter, loadRound, (req, res) => {
-    const { questionId, correct } = req.body ?? {};
+    const { questionId, answer } = req.body ?? {};
     const question = typeof questionId === 'string'
       ? findCategory(req.round.category_id)?.questionsById.get(questionId)
       : undefined;
-    if (!question || typeof correct !== 'boolean') return fail(res, 400, 'Invalid answer.');
+    const given = typeof answer === 'string' ? answer.trim() : '';
+    if (!question || !given || given.length > MAX_ANSWER_LENGTH) return fail(res, 400, 'Invalid answer.');
 
-    const result = leaderboard.recordAnswer(req.round, question, correct, now());
+    const result = leaderboard.recordAnswer(req.round, question, isAnswerCorrect(question.answer, given), now());
     if (!result) return fail(res, 409, 'Question already answered in this round.');
     res.json(result);
   });

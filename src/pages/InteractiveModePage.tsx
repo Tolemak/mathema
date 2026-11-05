@@ -115,7 +115,7 @@ const InteractiveSession: React.FC<InteractiveSessionProps> = ({ category, onRes
         answerQueue.current = answerQueue.current
             .then(async () => {
                 const roundId = await round.current;
-                if (roundId) await submitAnswer(roundId, questionId, isCorrect);
+                if (roundId) await submitAnswer(roundId, questionId, given);
             })
             .catch(() => undefined);
 
