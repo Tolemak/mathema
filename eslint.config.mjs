@@ -18,6 +18,7 @@ export default tseslint.config(
             'react-refresh': reactRefresh,
         },
         rules: {
+            complexity: ['error', 14],
             ...reactHooks.configs.recommended.rules,
             'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
         },
@@ -31,6 +32,7 @@ export default tseslint.config(
             globals: globals.node,
         },
         rules: {
+            complexity: ['error', 14],
             'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
         },
     },
