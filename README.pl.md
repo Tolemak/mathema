@@ -2,9 +2,9 @@
 
 [![status: done](https://img.shields.io/badge/status-done-blue)](https://github.com/Tolemak/mathema)
 
-Aplikacja do ćwiczenia matematyki: wybierasz kategorię, rozwiązujesz zadania na czas albo po prostu je przeglądasz. React + TypeScript + Vite. Wspólny ranking działa na małym API w Express + SQLite w `server/`, które samo liczy punkty rundy zamiast ufać przeglądarce. [mathema.tolemak.pl](https://mathema.tolemak.pl/)
-
 [English version](README.md)
+
+Aplikacja do ćwiczenia matematyki: wybierasz kategorię, rozwiązujesz zadania na czas albo po prostu je przeglądasz. React + TypeScript + Vite. Wspólny ranking działa na małym API w Express + SQLite w `server/`, które samo liczy punkty rundy zamiast ufać przeglądarce. [mathema.tolemak.pl](https://mathema.tolemak.pl/)
 
 Interfejs jest dostępny po polsku (domyślnie) i angielsku. Przełącznik PL/EN w dolnym pasku zmienia język, wybór jest pamiętany w przeglądarce i ustawia `<html lang>`. Treści zadań pozostają po polsku; nazwy działów, poziomów, trudność i cały tekst interfejsu są tłumaczone.
 
