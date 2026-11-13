@@ -5,6 +5,7 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'v8',
+      reporter: ['text', 'html', 'clover', 'json', 'cobertura'],
       include: ['*.js'],
       exclude: ['index.js', 'vitest.config.js', '*.test.js'],
       thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
